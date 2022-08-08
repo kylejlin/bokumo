@@ -1,0 +1,8 @@
+{
+  "bgm_file_name": "C4.wav",
+  "playback_start_in_ms": 0,
+  "recording_start_in_ms": 1250,
+  "recording_stop_in_ms": 4750,
+  "playback_stop_in_ms": 6000,
+  "recording_names": ["ka_ka_ki_ku_ke_ko"]
+}

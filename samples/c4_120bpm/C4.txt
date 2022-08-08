@@ -1,0 +1,6 @@
+msec
+
+1,  0,     0,     0,        0,        0, Playback Starting
+2,  1250,     1,     0,        0,        0, Recording Starting	
+3,  4750,     0,     1,        0,        0, Recording Stoping
+4,  6000,     0,     0,        1,        1, Playback Stoping

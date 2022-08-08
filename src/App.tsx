@@ -1,7 +1,13 @@
 import React from "react";
 import "./App.css";
+import { AppState, BokumoConfig } from "./state";
 
 const FFT_SIZE = 2048;
+
+export interface AppProps {
+  stream: MediaStream;
+  config: BokumoConfig;
+}
 
 export class App extends React.Component<AppProps, AppState> {
   private spectrogramRef: React.RefObject<HTMLCanvasElement>;
@@ -76,12 +82,6 @@ export class App extends React.Component<AppProps, AppState> {
     requestAnimationFrame(this.updateSpectrogram);
   }
 }
-
-export interface AppProps {
-  stream: MediaStream;
-}
-
-export interface AppState {}
 
 function renderSpectrogram(
   ctx: CanvasRenderingContext2D,
