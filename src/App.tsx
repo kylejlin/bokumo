@@ -183,26 +183,27 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   startRecording(): void {
-    this.audioChunks = [];
-    this.recorder.start();
-  }
-
-  recorderOnStart(): void {
     const { bgmElement } = this.props.config;
     bgmElement.currentTime = this.props.config.playbackStartInMs * 1e-3;
     const playPromise = bgmElement.play() ?? Promise.resolve();
+
     playPromise.then(() => {
-      this.startTimeInMs = this.audioCtx.currentTime * 1e3;
-      this.previousRenderTimeInMs = this.startTimeInMs;
-
-      setTimeout(
-        this.stopRecording,
-        this.props.config.playbackStopInMs - this.props.config.playbackStartInMs
-      );
-
-      this.renderSpectrogramBackground();
-      requestAnimationFrame(this.updateSpectrogram);
+      this.audioChunks = [];
+      this.recorder.start();
     });
+  }
+
+  recorderOnStart(): void {
+    this.startTimeInMs = this.audioCtx.currentTime * 1e3;
+    this.previousRenderTimeInMs = this.startTimeInMs;
+
+    setTimeout(
+      this.stopRecording,
+      this.props.config.playbackStopInMs - this.props.config.playbackStartInMs
+    );
+
+    this.renderSpectrogramBackground();
+    requestAnimationFrame(this.updateSpectrogram);
   }
 
   stopRecording(): void {
