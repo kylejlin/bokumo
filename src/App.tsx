@@ -35,6 +35,10 @@ export class App extends React.Component<AppProps, AppState> {
 
     this.updateSpectrogram = this.updateSpectrogram.bind(this);
     this.recordButtonOnClick = this.recordButtonOnClick.bind(this);
+    this.previousRecordingButtonOnClick =
+      this.previousRecordingButtonOnClick.bind(this);
+    this.nextRecordingButtonOnClick =
+      this.nextRecordingButtonOnClick.bind(this);
     this.stopRecording = this.stopRecording.bind(this);
     this.recorderOnStop = this.recorderOnStop.bind(this);
     this.startRecording = this.startRecording.bind(this);
@@ -78,17 +82,26 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   render(): React.ReactElement {
+    const { recordingNames } = this.props.config;
+    const { recordingIndex } = this.state;
+    const isPaused = !this.state.isRecording;
     return (
       <div className="App">
-        <div>
-          Recording:{" "}
-          {this.props.config.recordingNames[this.state.recordingIndex]}.wav
-        </div>
+        <div>Recording: {recordingNames[recordingIndex]}.wav</div>
         <button
-          disabled={this.state.isRecording}
-          onClick={this.recordButtonOnClick}
+          disabled={!(0 < recordingIndex && isPaused)}
+          onClick={this.previousRecordingButtonOnClick}
         >
+          Previous
+        </button>
+        <button disabled={!isPaused} onClick={this.recordButtonOnClick}>
           Record
+        </button>
+        <button
+          disabled={!(recordingIndex < recordingNames.length - 1 && isPaused)}
+          onClick={this.nextRecordingButtonOnClick}
+        >
+          Next
         </button>
         <canvas
           className="Spectrogram"
@@ -154,6 +167,21 @@ export class App extends React.Component<AppProps, AppState> {
 
   recordButtonOnClick(): void {
     this.setState({ isRecording: true }, this.startRecording);
+  }
+
+  previousRecordingButtonOnClick(): void {
+    this.setState({
+      recordingIndex: Math.max(0, this.state.recordingIndex - 1),
+    });
+  }
+
+  nextRecordingButtonOnClick(): void {
+    this.setState({
+      recordingIndex: Math.min(
+        this.props.config.recordingNames.length - 1,
+        this.state.recordingIndex + 1
+      ),
+    });
   }
 
   startRecording(): void {

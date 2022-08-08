@@ -9,6 +9,6 @@
     2000,
     "recording_stop_in_ms"
   ],
-  "recording_names": ["ka_ka_ki_ku_ke_ko", "sa_se_si_su_so"],
+  "recording_names": ["a_a_i_u_e_o", "ka_ka_ki_ku_ke_ko", "sa_sa_se_si_su_so"],
   "spectrogram_max_frequency_in_hz": 8000
 }
