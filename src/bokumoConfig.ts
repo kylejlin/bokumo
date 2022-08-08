@@ -99,6 +99,7 @@ export function parseBokumoConfig(
         }) &&
         Array.isArray(recordingNames) &&
         recordingNames.every((name) => typeof name === "string") &&
+        recordingNames.length >= 1 &&
         (spectrogramMaxFrequency === undefined ||
           (Number.isInteger(spectrogramMaxFrequency) &&
             spectrogramMaxFrequency > 0))

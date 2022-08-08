@@ -41,4 +41,5 @@ export interface LaunchFailedState {
 
 export interface AppState {
   readonly isRecording: boolean;
+  readonly recordingIndex: number;
 }

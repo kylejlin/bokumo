@@ -41,6 +41,7 @@ export class App extends React.Component<AppProps, AppState> {
 
     this.state = {
       isRecording: false,
+      recordingIndex: 0,
     };
 
     this.spectrogramRef = React.createRef();
@@ -79,6 +80,10 @@ export class App extends React.Component<AppProps, AppState> {
   render(): React.ReactElement {
     return (
       <div className="App">
+        <div>
+          Recording:{" "}
+          {this.props.config.recordingNames[this.state.recordingIndex]}.wav
+        </div>
         <button
           disabled={this.state.isRecording}
           onClick={this.recordButtonOnClick}
@@ -180,19 +185,26 @@ export class App extends React.Component<AppProps, AppState> {
       type: this.props.mimeType,
     });
 
-    downloadAudioBlobAsWav(this.audioCtx, audioBlob);
+    downloadAudioBlobAsWav(
+      this.audioCtx,
+      audioBlob,
+      this.props.config.recordingNames[this.state.recordingIndex] + ".wav"
+    );
 
     this.setState({ isRecording: false });
   }
 }
 
-function downloadAudioBlobAsWav(audioCtx: AudioContext, audioBlob: Blob): void {
+function downloadAudioBlobAsWav(
+  audioCtx: AudioContext,
+  audioBlob: Blob,
+  outputFileName: string
+): void {
   const fr = new FileReader();
   fr.addEventListener("load", () => {
     const rawBuffer = fr.result as ArrayBuffer;
     audioCtx.decodeAudioData(rawBuffer, (audioBuffer) => {
       const wavBuffer = toWav(audioBuffer);
-      const outputFileName = "audio.wav";
       downloadArrayBuffer(wavBuffer, outputFileName);
     });
   });
