@@ -135,7 +135,7 @@ export class App extends React.Component<AppProps, AppState> {
       previousRenderTimeInDateDotNow: this.previousRenderTimeInDateDotNow,
     };
     renderSpectrogram(renderConfig);
-    renderRecordingReferenceTicks(ctx, this.props.config);
+    renderReferenceLines(ctx, this.props.config);
 
     this.previousRenderTimeInDateDotNow = now;
 
@@ -180,50 +180,9 @@ export class App extends React.Component<AppProps, AppState> {
       type: this.props.mimeType,
     });
 
-    this.downloadAudioBlob(audioBlob);
+    downloadAudioBlobAsWav(this.audioCtx, audioBlob);
 
     this.setState({ isRecording: false });
-  }
-
-  downloadAudioBlob(audioBlob: Blob) {
-    switch (this.props.config.outputExtension) {
-      case "wav":
-        downloadAudioBlobAsWav(this.audioCtx, audioBlob);
-        break;
-      case "browser_default":
-        this.downloadAudioBlobUsingPropMimeType(audioBlob);
-        break;
-      default: {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const _compilerEnforcedSanityCheck: never =
-          this.props.config.outputExtension;
-      }
-    }
-  }
-
-  downloadAudioBlobUsingPropMimeType(audioBlob: Blob) {
-    const fr = new FileReader();
-    fr.addEventListener("load", () => {
-      const audioDataUrl = fr.result as string;
-      const a = document.createElement("a");
-      a.href = audioDataUrl;
-      a.download = "audio." + this.audioMimeTypeToFileExtension();
-      a.click();
-    });
-    fr.readAsDataURL(audioBlob);
-  }
-
-  audioMimeTypeToFileExtension(): string {
-    switch (this.props.mimeType) {
-      case "audio/webm":
-        return "webm";
-      case "audio/ogg":
-        return "ogg";
-      case "audio/x-matroska":
-        return "mkv";
-      case "audio/mp3":
-        return "mp3";
-    }
   }
 }
 
@@ -250,7 +209,7 @@ function downloadArrayBuffer(
   a.click();
 }
 
-function renderRecordingReferenceTicks(
+function renderReferenceLines(
   ctx: CanvasRenderingContext2D,
   bokumoConfig: BokumoConfig
 ): void {
@@ -258,40 +217,24 @@ function renderRecordingReferenceTicks(
 
   const playbackDurationInMs =
     bokumoConfig.playbackStopInMs - bokumoConfig.playbackStartInMs;
-  const recordingStartFactor =
-    (bokumoConfig.recordingStartInMs - bokumoConfig.playbackStartInMs) /
-    playbackDurationInMs;
-  const mainSegmentStartFactor =
-    (bokumoConfig.mainSegmentStartInMs - bokumoConfig.playbackStartInMs) /
-    playbackDurationInMs;
-  const recordingStopFactor =
-    (bokumoConfig.recordingStopInMs - bokumoConfig.playbackStartInMs) /
-    playbackDurationInMs;
 
-  const recordingStartX = Math.floor(
-    clampedLerp({
-      start: 0,
-      end: ctx.canvas.width,
-      factor: recordingStartFactor,
-    })
+  const lineFactors = bokumoConfig.referenceLinesInMs.map(
+    (lineInMs) =>
+      (lineInMs - bokumoConfig.playbackStartInMs) / playbackDurationInMs
   );
-  const mainSegmentStartX = Math.floor(
-    clampedLerp({
-      start: 0,
-      end: ctx.canvas.width,
-      factor: mainSegmentStartFactor,
-    })
-  );
-  const recordingStopX = Math.floor(
-    clampedLerp({
-      start: 0,
-      end: canvasWidth,
-      factor: recordingStopFactor,
-    })
+  const lineXs = lineFactors.map((lineFactor) =>
+    Math.floor(
+      clampedLerp({
+        start: 0,
+        end: canvasWidth,
+        factor: lineFactor,
+      })
+    )
   );
 
   ctx.fillStyle = "red";
-  ctx.fillRect(recordingStartX, 0, 1, canvasHeight);
-  ctx.fillRect(mainSegmentStartX, 0, 1, canvasHeight);
-  ctx.fillRect(recordingStopX, 0, 1, canvasHeight);
+  for (let i = 0; i < lineXs.length; ++i) {
+    const lineX = lineXs[i];
+    ctx.fillRect(lineX, 0, 1, canvasHeight);
+  }
 }
