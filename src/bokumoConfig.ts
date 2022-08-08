@@ -5,6 +5,7 @@ const BOKUMO_CONFIG = {
     bgmFileName: "bgm_file_name",
     playbackStartInMs: "playback_start_in_ms",
     recordingStartInMs: "recording_start_in_ms",
+    mainSegmentStartInMs: "main_segment_start_in_ms",
     recordingStopInMs: "recording_stop_in_ms",
     playbackStopInMs: "playback_stop_in_ms",
     recordingNames: "recording_names",
@@ -38,6 +39,8 @@ export function parseBokumoConfig(
   const bgmFileName = parsed[BOKUMO_CONFIG.jsonKeys.bgmFileName];
   const playbackStartInMs = parsed[BOKUMO_CONFIG.jsonKeys.playbackStartInMs];
   const recordingStartInMs = parsed[BOKUMO_CONFIG.jsonKeys.recordingStartInMs];
+  const mainSegmentStartInMs =
+    parsed[BOKUMO_CONFIG.jsonKeys.mainSegmentStartInMs];
   const recordingStopInMs = parsed[BOKUMO_CONFIG.jsonKeys.recordingStopInMs];
   const playbackStopInMs = parsed[BOKUMO_CONFIG.jsonKeys.playbackStopInMs];
   const recordingNames = parsed[BOKUMO_CONFIG.jsonKeys.recordingNames];
@@ -76,6 +79,7 @@ export function parseBokumoConfig(
       bgmElementUrl: URL.createObjectURL(bgmFileCandidates[0]),
       playbackStartInMs,
       recordingStartInMs,
+      mainSegmentStartInMs,
       recordingStopInMs,
       playbackStopInMs,
       recordingNames,
@@ -94,6 +98,7 @@ export function buildConfig(
         bgmElement,
         playbackStartInMs: builder.playbackStartInMs,
         recordingStartInMs: builder.recordingStartInMs,
+        mainSegmentStartInMs: builder.mainSegmentStartInMs,
         recordingStopInMs: builder.recordingStopInMs,
         playbackStopInMs: builder.playbackStopInMs,
         recordingNames: builder.recordingNames,

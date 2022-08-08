@@ -113,6 +113,7 @@ export class App extends React.Component<AppProps, AppState> {
     this.audioChunks = [];
     this.setState({ isRecording: true }, () => {
       this.recorder.start();
+      this.props.config.bgmElement.play();
       setTimeout(this.stopRecording, this.props.config.playbackStopInMs);
       requestAnimationFrame(this.updateSpectrogram);
     });

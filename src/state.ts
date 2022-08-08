@@ -29,6 +29,7 @@ export interface BokumoConfig {
   readonly bgmElement: HTMLAudioElement;
   readonly playbackStartInMs: number;
   readonly recordingStartInMs: number;
+  readonly mainSegmentStartInMs: number;
   readonly recordingStopInMs: number;
   readonly playbackStopInMs: number;
   readonly recordingNames: readonly string[];
@@ -39,6 +40,7 @@ export interface BokumoConfigBuilder {
   readonly bgmElementUrl: string;
   readonly playbackStartInMs: number;
   readonly recordingStartInMs: number;
+  readonly mainSegmentStartInMs: number;
   readonly recordingStopInMs: number;
   readonly playbackStopInMs: number;
   readonly recordingNames: readonly string[];
