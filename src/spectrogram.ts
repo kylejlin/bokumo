@@ -6,9 +6,9 @@ export interface RenderConfig {
   audioCtx: AudioContext;
   frequencyArray: Uint8Array;
   bokumoConfig: BokumoConfig;
-  dateDotNow: number;
-  startTimeInDateDotNow: number;
-  previousRenderTimeInDateDotNow: number;
+  currentTimeInMs: number;
+  startTimeInMs: number;
+  previousRenderTimeInMs: number;
 }
 
 export function getSpectrogramCanvasHeight(
@@ -46,8 +46,7 @@ export function renderSpectrogram(renderConfig: RenderConfig): void {
   const imgData = new ImageData(imgDataData, 1, spectrumHeight);
 
   const elapsedMsBetweenPreviousRenderAndRecordingStart =
-    renderConfig.previousRenderTimeInDateDotNow -
-    renderConfig.startTimeInDateDotNow;
+    renderConfig.previousRenderTimeInMs - renderConfig.startTimeInMs;
   const playbackDurationMs =
     bokumoConfig.playbackStopInMs - bokumoConfig.playbackStartInMs;
   const spectrumLeft = Math.floor(
@@ -60,7 +59,7 @@ export function renderSpectrogram(renderConfig: RenderConfig): void {
   );
 
   const elapsedMsBetweenNowAndRecordingStart =
-    renderConfig.dateDotNow - renderConfig.startTimeInDateDotNow;
+    renderConfig.currentTimeInMs - renderConfig.startTimeInMs;
   const spectrumRight = Math.floor(
     clampedLerp({
       start: 0,

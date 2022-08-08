@@ -25,8 +25,8 @@ export class App extends React.Component<AppProps, AppState> {
   private audioCtx: AudioContext;
   private analyser: AnalyserNode;
   private frequencyArray: Uint8Array;
-  private startTimeInDateDotNow: number;
-  private previousRenderTimeInDateDotNow: number;
+  private startTimeInMs: number;
+  private previousRenderTimeInMs: number;
   private recorder: MediaRecorder;
   private audioChunks: Blob[];
 
@@ -39,9 +39,10 @@ export class App extends React.Component<AppProps, AppState> {
       this.previousRecordingButtonOnClick.bind(this);
     this.nextRecordingButtonOnClick =
       this.nextRecordingButtonOnClick.bind(this);
+    this.startRecording = this.startRecording.bind(this);
+    this.recorderOnStart = this.recorderOnStart.bind(this);
     this.stopRecording = this.stopRecording.bind(this);
     this.recorderOnStop = this.recorderOnStop.bind(this);
-    this.startRecording = this.startRecording.bind(this);
 
     this.state = {
       isRecording: false,
@@ -62,8 +63,8 @@ export class App extends React.Component<AppProps, AppState> {
     const frequencyArray = new Uint8Array(analyser.frequencyBinCount);
     this.frequencyArray = frequencyArray;
 
-    this.startTimeInDateDotNow = -1;
-    this.previousRenderTimeInDateDotNow = -1;
+    this.startTimeInMs = -1;
+    this.previousRenderTimeInMs = -1;
 
     const recorder = new MediaRecorder(this.props.stream, {
       mimeType: this.props.mimeType,
@@ -72,6 +73,7 @@ export class App extends React.Component<AppProps, AppState> {
     recorder.addEventListener("dataavailable", (event) => {
       this.audioChunks.push(event.data);
     });
+    recorder.addEventListener("start", this.recorderOnStart);
     recorder.addEventListener("stop", this.recorderOnStop);
 
     this.audioChunks = [];
@@ -135,29 +137,25 @@ export class App extends React.Component<AppProps, AppState> {
     }
     const ctx = canvas.getContext("2d")!;
 
-    const {
-      analyser: audioAnalyser,
-      frequencyArray,
-      startTimeInDateDotNow,
-    } = this;
+    const { analyser: audioAnalyser, frequencyArray, startTimeInMs } = this;
     audioAnalyser.getByteFrequencyData(frequencyArray);
 
-    const now = Date.now();
+    const now = this.audioCtx.currentTime * 1e3;
     const renderConfig: RenderConfig = {
       ctx,
       audioCtx: this.audioCtx,
       frequencyArray,
       bokumoConfig: this.props.config,
-      dateDotNow: now,
-      startTimeInDateDotNow,
-      previousRenderTimeInDateDotNow: this.previousRenderTimeInDateDotNow,
+      currentTimeInMs: now,
+      startTimeInMs,
+      previousRenderTimeInMs: this.previousRenderTimeInMs,
     };
     renderSpectrogram(renderConfig);
     renderReferenceLines(ctx, this.props.config);
 
-    this.previousRenderTimeInDateDotNow = now;
+    this.previousRenderTimeInMs = now;
 
-    const elapsedTime = now - startTimeInDateDotNow;
+    const elapsedTime = now - startTimeInMs;
     const playbackDurationInMs =
       this.props.config.playbackStopInMs - this.props.config.playbackStartInMs;
     if (elapsedTime <= playbackDurationInMs) {
@@ -185,23 +183,26 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   startRecording(): void {
-    this.startTimeInDateDotNow = Date.now();
-    this.previousRenderTimeInDateDotNow = this.startTimeInDateDotNow;
     this.audioChunks = [];
-
     this.recorder.start();
+  }
 
+  recorderOnStart(): void {
     const { bgmElement } = this.props.config;
     bgmElement.currentTime = this.props.config.playbackStartInMs * 1e-3;
-    bgmElement.play();
+    const playPromise = bgmElement.play() ?? Promise.resolve();
+    playPromise.then(() => {
+      this.startTimeInMs = this.audioCtx.currentTime * 1e3;
+      this.previousRenderTimeInMs = this.startTimeInMs;
 
-    setTimeout(
-      this.stopRecording,
-      this.props.config.playbackStopInMs - this.props.config.playbackStartInMs
-    );
+      setTimeout(
+        this.stopRecording,
+        this.props.config.playbackStopInMs - this.props.config.playbackStartInMs
+      );
 
-    this.renderSpectrogramBackground();
-    requestAnimationFrame(this.updateSpectrogram);
+      this.renderSpectrogramBackground();
+      requestAnimationFrame(this.updateSpectrogram);
+    });
   }
 
   stopRecording(): void {
