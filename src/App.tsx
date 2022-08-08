@@ -214,6 +214,7 @@ export class App extends React.Component<AppProps, AppState> {
     });
 
     downloadAudioBlobAsWav(
+      this.props.config,
       this.audioCtx,
       audioBlob,
       this.props.config.recordingNames[this.state.recordingIndex] + ".wav"
@@ -224,6 +225,7 @@ export class App extends React.Component<AppProps, AppState> {
 }
 
 function downloadAudioBlobAsWav(
+  bokumoConfig: BokumoConfig,
   audioCtx: AudioContext,
   audioBlob: Blob,
   outputFileName: string
@@ -231,8 +233,14 @@ function downloadAudioBlobAsWav(
   const fr = new FileReader();
   fr.addEventListener("load", () => {
     const rawBuffer = fr.result as ArrayBuffer;
-    audioCtx.decodeAudioData(rawBuffer, (audioBuffer) => {
-      const wavBuffer = toWav(audioBuffer);
+    audioCtx.decodeAudioData(rawBuffer, (entireAudioBuffer) => {
+      const slicedAudioBuffer = sliceAudioBuffer(audioCtx, entireAudioBuffer, {
+        startInMs:
+          bokumoConfig.recordingStartInMs - bokumoConfig.playbackStartInMs,
+        endInMs:
+          bokumoConfig.recordingStopInMs - bokumoConfig.playbackStartInMs,
+      });
+      const wavBuffer = toWav(slicedAudioBuffer);
       downloadArrayBuffer(wavBuffer, outputFileName);
     });
   });
@@ -277,4 +285,36 @@ function renderReferenceLines(
     const lineX = lineXs[i];
     ctx.fillRect(lineX, 0, 1, canvasHeight);
   }
+}
+
+function sliceAudioBuffer(
+  audioCtx: AudioContext,
+  entireBuffer: AudioBuffer,
+  { startInMs, endInMs }: { startInMs: number; endInMs: number }
+): AudioBuffer {
+  const startFrame = Math.floor(startInMs * audioCtx.sampleRate * 1e-3);
+  const endFrame = Math.min(
+    Math.floor(endInMs * audioCtx.sampleRate * 1e-3),
+    entireBuffer.length
+  );
+  const sliceLength = endFrame - startFrame;
+  const slice = audioCtx.createBuffer(
+    entireBuffer.numberOfChannels,
+    sliceLength,
+    entireBuffer.sampleRate
+  );
+
+  for (let frameIndex = startFrame; frameIndex < endFrame; ++frameIndex) {
+    for (
+      let channelIndex = 0;
+      channelIndex < entireBuffer.numberOfChannels;
+      ++channelIndex
+    ) {
+      const srcChannel = entireBuffer.getChannelData(channelIndex);
+      const destChannel = slice.getChannelData(channelIndex);
+      destChannel[frameIndex - startFrame] = srcChannel[frameIndex];
+    }
+  }
+
+  return slice;
 }
