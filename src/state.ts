@@ -1,4 +1,5 @@
 import { AppProps } from "./App";
+import { BokumoConfig } from "./bokumoConfig";
 
 export type AllAudioMimeTypes = [
   "audio/webm",
@@ -23,28 +24,6 @@ export enum WrapperStateKind {
 export interface PrelaunchState {
   readonly kind: WrapperStateKind.Prelaunch;
   readonly config: undefined | BokumoConfig;
-}
-
-export interface BokumoConfig {
-  readonly bgmElement: HTMLAudioElement;
-  readonly playbackStartInMs: number;
-  readonly recordingStartInMs: number;
-  readonly mainSegmentStartInMs: number;
-  readonly recordingStopInMs: number;
-  readonly playbackStopInMs: number;
-  readonly recordingNames: readonly string[];
-  readonly outputExtension: "wav" | "browser_default";
-}
-
-export interface BokumoConfigBuilder {
-  readonly bgmElementUrl: string;
-  readonly playbackStartInMs: number;
-  readonly recordingStartInMs: number;
-  readonly mainSegmentStartInMs: number;
-  readonly recordingStopInMs: number;
-  readonly playbackStopInMs: number;
-  readonly recordingNames: readonly string[];
-  readonly outputExtension: "wav" | "browser_default";
 }
 
 export interface LaunchPendingState {

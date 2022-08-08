@@ -1,14 +1,16 @@
 import React from "react";
 import "./App.css";
-import { AppState, AudioMimeType, BokumoConfig } from "./state";
+import { AppState, AudioMimeType } from "./state";
 import toWav from "audiobuffer-to-wav";
 import { getBase64FromArrayBuffer } from "./lib/base64FromArrayBuffer";
+import {
+  getSpectrogramCanvasHeight,
+  RenderConfig,
+  renderSpectrogram,
+} from "./spectrogram";
+import { BokumoConfig } from "./bokumoConfig";
 
 const FFT_SIZE = 2048;
-
-function getFrequencyBinCount(): number {
-  return FFT_SIZE / 2;
-}
 
 export interface AppProps {
   mimeType: AudioMimeType;
@@ -93,7 +95,11 @@ export class App extends React.Component<AppProps, AppState> {
           className="Spectrogram"
           ref={this.spectrogramRef}
           width={window.innerWidth}
-          height={getFrequencyBinCount()}
+          height={getSpectrogramCanvasHeight(
+            this.audioCtx,
+            this.frequencyArray,
+            this.props.config
+          )}
         />
       </div>
     );
@@ -116,6 +122,7 @@ export class App extends React.Component<AppProps, AppState> {
     const now = Date.now();
     const renderConfig: RenderConfig = {
       ctx,
+      audioCtx: this.audioCtx,
       frequencyArray,
       bokumoConfig: this.props.config,
       dateDotNow: now,
@@ -209,59 +216,6 @@ export class App extends React.Component<AppProps, AppState> {
   }
 }
 
-interface RenderConfig {
-  ctx: CanvasRenderingContext2D;
-  frequencyArray: Uint8Array;
-  bokumoConfig: BokumoConfig;
-  dateDotNow: number;
-  startTimeInDateDotNow: number;
-  previousRenderTimeInDateDotNow: number;
-}
-
-function renderSpectrogram(renderConfig: RenderConfig): void {
-  const { ctx, frequencyArray, bokumoConfig } = renderConfig;
-
-  const spectrumHeight = getFrequencyBinCount();
-  const imgDataData = new Uint8ClampedArray(spectrumHeight * 4);
-  for (let srcIndex = 0; srcIndex < spectrumHeight; ++srcIndex) {
-    const amplitude = frequencyArray[srcIndex];
-    const destRedIndex = (spectrumHeight - srcIndex - 1) * 4;
-    imgDataData[destRedIndex] = amplitude;
-    imgDataData[destRedIndex + 1] = amplitude;
-    imgDataData[destRedIndex + 2] = amplitude;
-    imgDataData[destRedIndex + 3] = 255;
-  }
-  const imgData = new ImageData(imgDataData, 1, spectrumHeight);
-
-  const elapsedMsBetweenPreviousRenderAndRecordingStart =
-    renderConfig.previousRenderTimeInDateDotNow -
-    renderConfig.startTimeInDateDotNow;
-  const playbackDurationMs =
-    bokumoConfig.playbackStopInMs - bokumoConfig.playbackStartInMs;
-  const spectrumLeft = Math.floor(
-    clampedLerp({
-      start: 0,
-      end: ctx.canvas.width,
-      factor:
-        elapsedMsBetweenPreviousRenderAndRecordingStart / playbackDurationMs,
-    })
-  );
-
-  const elapsedMsBetweenNowAndRecordingStart =
-    renderConfig.dateDotNow - renderConfig.startTimeInDateDotNow;
-  const spectrumRight = Math.floor(
-    clampedLerp({
-      start: 0,
-      end: ctx.canvas.width,
-      factor: elapsedMsBetweenNowAndRecordingStart / playbackDurationMs,
-    })
-  );
-
-  for (let x = spectrumLeft; x < spectrumRight; ++x) {
-    ctx.putImageData(imgData, x, 0);
-  }
-}
-
 function downloadAudioBlobAsWav(audioCtx: AudioContext, audioBlob: Blob): void {
   const fr = new FileReader();
   fr.addEventListener("load", () => {
@@ -283,17 +237,4 @@ function downloadArrayBuffer(
   a.href = "data:audio/wav;base64," + getBase64FromArrayBuffer(wavBuffer);
   a.download = outputFileName;
   a.click();
-}
-
-function clampedLerp({
-  start,
-  end,
-  factor,
-}: {
-  start: number;
-  end: number;
-  factor: number;
-}): number {
-  const clampedFactor = Math.max(0, Math.min(factor, 1));
-  return start + (end - start) * clampedFactor;
 }

@@ -6,5 +6,6 @@
   "recording_stop_in_ms": 4750,
   "playback_stop_in_ms": 6000,
   "recording_names": ["ka_ka_ki_ku_ke_ko"],
-  "output_extension": "wav"
+  "output_extension": "wav",
+  "spectrogram_max_frequency_in_hz": 8000
 }

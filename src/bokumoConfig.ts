@@ -1,4 +1,26 @@
-import { BokumoConfig, BokumoConfigBuilder } from "./state";
+export interface BokumoConfig {
+  readonly bgmElement: HTMLAudioElement;
+  readonly playbackStartInMs: number;
+  readonly recordingStartInMs: number;
+  readonly mainSegmentStartInMs: number;
+  readonly recordingStopInMs: number;
+  readonly playbackStopInMs: number;
+  readonly recordingNames: readonly string[];
+  readonly outputExtension: "wav" | "browser_default";
+  readonly spectrogramMaxFrequency: number;
+}
+
+export interface BokumoConfigBuilder {
+  readonly bgmElementUrl: string;
+  readonly playbackStartInMs: number;
+  readonly recordingStartInMs: number;
+  readonly mainSegmentStartInMs: number;
+  readonly recordingStopInMs: number;
+  readonly playbackStopInMs: number;
+  readonly recordingNames: readonly string[];
+  readonly outputExtension: "wav" | "browser_default";
+  readonly spectrogramMaxFrequency: undefined | number;
+}
 
 const BOKUMO_CONFIG = {
   jsonKeys: {
@@ -10,6 +32,7 @@ const BOKUMO_CONFIG = {
     playbackStopInMs: "playback_stop_in_ms",
     recordingNames: "recording_names",
     outputExtension: "output_extension",
+    spectrogramMaxFrequency: "spectrogram_max_frequency_in_hz",
   },
 } as const;
 
@@ -46,6 +69,8 @@ export function parseBokumoConfig(
   const recordingNames = parsed[BOKUMO_CONFIG.jsonKeys.recordingNames];
   const outputExtension: string =
     parsed[BOKUMO_CONFIG.jsonKeys.outputExtension];
+  const spectrogramMaxFrequency =
+    parsed[BOKUMO_CONFIG.jsonKeys.spectrogramMaxFrequency];
 
   try {
     if (
@@ -55,7 +80,10 @@ export function parseBokumoConfig(
         recordingStartInMs >= 0 &&
         Array.isArray(recordingNames) &&
         recordingNames.every((name) => typeof name === "string") &&
-        (outputExtension === "wav" || outputExtension === "browser_default")
+        (outputExtension === "wav" || outputExtension === "browser_default") &&
+        (spectrogramMaxFrequency === undefined ||
+          (Number.isInteger(spectrogramMaxFrequency) &&
+            spectrogramMaxFrequency > 0))
       )
     ) {
       return { error: "invalid_json_shape" };
@@ -84,6 +112,7 @@ export function parseBokumoConfig(
       playbackStopInMs,
       recordingNames,
       outputExtension,
+      spectrogramMaxFrequency,
     },
   };
 }
@@ -103,6 +132,7 @@ export function buildConfig(
         playbackStopInMs: builder.playbackStopInMs,
         recordingNames: builder.recordingNames,
         outputExtension: builder.outputExtension,
+        spectrogramMaxFrequency: builder.spectrogramMaxFrequency ?? Infinity,
       });
     });
     bgmElement.src = builder.bgmElementUrl;
