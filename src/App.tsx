@@ -53,7 +53,6 @@ export class App extends React.Component<AppProps, AppState> {
     });
     this.recorder = recorder;
     recorder.addEventListener("dataavailable", (event) => {
-      console.log("dataavailable", event);
       this.audioChunks.push(event.data);
     });
     recorder.addEventListener("stop", this.recorderOnStop);
@@ -122,7 +121,6 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   recorderOnStop(): void {
-    console.log({ chunks: this.audioChunks });
     const audioBlob = new Blob(this.audioChunks, {
       type: this.props.mimeType,
     });
@@ -130,7 +128,6 @@ export class App extends React.Component<AppProps, AppState> {
     const fr = new FileReader();
     fr.addEventListener("load", () => {
       const audioDataUrl = fr.result as string;
-      console.log({ audioDataUrl });
       const a = document.createElement("a");
       a.href = audioDataUrl;
       a.download = "audio." + audioMimeTypeToFileExtension(this.props.mimeType);
