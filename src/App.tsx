@@ -72,14 +72,7 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   componentDidMount(): void {
-    const canvas = this.spectrogramRef.current;
-    if (canvas === null) {
-      return;
-    }
-    const ctx = canvas.getContext("2d")!;
-    const { width: canvasWidth, height: canvasHeight } = ctx.canvas;
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    this.renderSpectrogramBackground();
   }
 
   render(): React.ReactElement {
@@ -103,6 +96,17 @@ export class App extends React.Component<AppProps, AppState> {
         />
       </div>
     );
+  }
+
+  renderSpectrogramBackground(): void {
+    const canvas = this.spectrogramRef.current;
+    if (canvas === null) {
+      return;
+    }
+    const ctx = canvas.getContext("2d")!;
+    const { width: canvasWidth, height: canvasHeight } = ctx.canvas;
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
   }
 
   updateSpectrogram(): void {
@@ -157,6 +161,8 @@ export class App extends React.Component<AppProps, AppState> {
     bgmElement.play();
 
     setTimeout(this.stopRecording, this.props.config.playbackStopInMs);
+
+    this.renderSpectrogramBackground();
     requestAnimationFrame(this.updateSpectrogram);
   }
 
