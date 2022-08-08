@@ -8,6 +8,7 @@ const BOKUMO_CONFIG = {
     recordingStopInMs: "recording_stop_in_ms",
     playbackStopInMs: "playback_stop_in_ms",
     recordingNames: "recording_names",
+    outputExtension: "output_extension",
   },
 } as const;
 
@@ -40,6 +41,8 @@ export function parseBokumoConfig(
   const recordingStopInMs = parsed[BOKUMO_CONFIG.jsonKeys.recordingStopInMs];
   const playbackStopInMs = parsed[BOKUMO_CONFIG.jsonKeys.playbackStopInMs];
   const recordingNames = parsed[BOKUMO_CONFIG.jsonKeys.recordingNames];
+  const outputExtension: string =
+    parsed[BOKUMO_CONFIG.jsonKeys.outputExtension];
 
   try {
     if (
@@ -48,7 +51,8 @@ export function parseBokumoConfig(
         Number.isInteger(recordingStartInMs) &&
         recordingStartInMs >= 0 &&
         Array.isArray(recordingNames) &&
-        recordingNames.every((name) => typeof name === "string")
+        recordingNames.every((name) => typeof name === "string") &&
+        (outputExtension === "wav" || outputExtension === "browser_default")
       )
     ) {
       return { error: "invalid_json_shape" };
@@ -75,6 +79,7 @@ export function parseBokumoConfig(
       recordingStopInMs,
       playbackStopInMs,
       recordingNames,
+      outputExtension,
     },
   };
 }
@@ -92,6 +97,7 @@ export function buildConfig(
         recordingStopInMs: builder.recordingStopInMs,
         playbackStopInMs: builder.playbackStopInMs,
         recordingNames: builder.recordingNames,
+        outputExtension: builder.outputExtension,
       });
     });
     bgmElement.src = builder.bgmElementUrl;

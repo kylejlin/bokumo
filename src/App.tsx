@@ -1,6 +1,8 @@
 import React from "react";
 import "./App.css";
 import { AppState, AudioMimeType, BokumoConfig } from "./state";
+import toWav from "audiobuffer-to-wav";
+import { getBase64FromArrayBuffer } from "./lib/base64FromArrayBuffer";
 
 const FFT_SIZE = 2048;
 
@@ -125,16 +127,50 @@ export class App extends React.Component<AppProps, AppState> {
       type: this.props.mimeType,
     });
 
+    this.downloadAudioBlob(audioBlob);
+
+    this.setState({ isRecording: false });
+  }
+
+  downloadAudioBlob(audioBlob: Blob) {
+    switch (this.props.config.outputExtension) {
+      case "wav":
+        downloadAudioBlobAsWav(this.audioCtx, audioBlob);
+        break;
+      case "browser_default":
+        this.downloadAudioBlobUsingPropMimeType(audioBlob);
+        break;
+      default: {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const _compilerEnforcedSanityCheck: never =
+          this.props.config.outputExtension;
+      }
+    }
+  }
+
+  downloadAudioBlobUsingPropMimeType(audioBlob: Blob) {
     const fr = new FileReader();
     fr.addEventListener("load", () => {
       const audioDataUrl = fr.result as string;
       const a = document.createElement("a");
       a.href = audioDataUrl;
-      a.download = "audio." + audioMimeTypeToFileExtension(this.props.mimeType);
+      a.download = "audio." + this.audioMimeTypeToFileExtension();
       a.click();
     });
     fr.readAsDataURL(audioBlob);
-    this.setState({ isRecording: false });
+  }
+
+  audioMimeTypeToFileExtension(): string {
+    switch (this.props.mimeType) {
+      case "audio/webm":
+        return "webm";
+      case "audio/ogg":
+        return "ogg";
+      case "audio/x-matroska":
+        return "mkv";
+      case "audio/mp3":
+        return "mp3";
+    }
   }
 }
 
@@ -151,15 +187,25 @@ function renderSpectrogram(
   ctx.putImageData(imgData, x, 0);
 }
 
-function audioMimeTypeToFileExtension(mimeType: AudioMimeType): string {
-  switch (mimeType) {
-    case "audio/webm":
-      return "webm";
-    case "audio/ogg":
-      return "ogg";
-    case "audio/x-matroska":
-      return "mkv";
-    case "audio/mp3":
-      return "mp3";
-  }
+function downloadAudioBlobAsWav(audioCtx: AudioContext, audioBlob: Blob): void {
+  const fr = new FileReader();
+  fr.addEventListener("load", () => {
+    const rawBuffer = fr.result as ArrayBuffer;
+    audioCtx.decodeAudioData(rawBuffer, (audioBuffer) => {
+      const wavBuffer = toWav(audioBuffer);
+      const outputFileName = "audio.wav";
+      downloadArrayBuffer(wavBuffer, outputFileName);
+    });
+  });
+  fr.readAsArrayBuffer(audioBlob);
+}
+
+function downloadArrayBuffer(
+  wavBuffer: ArrayBuffer,
+  outputFileName: string
+): void {
+  const a = document.createElement("a");
+  a.href = "data:audio/wav;base64," + getBase64FromArrayBuffer(wavBuffer);
+  a.download = outputFileName;
+  a.click();
 }

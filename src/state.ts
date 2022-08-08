@@ -32,6 +32,7 @@ export interface BokumoConfig {
   readonly recordingStopInMs: number;
   readonly playbackStopInMs: number;
   readonly recordingNames: readonly string[];
+  readonly outputExtension: "wav" | "browser_default";
 }
 
 export interface BokumoConfigBuilder {
@@ -41,6 +42,7 @@ export interface BokumoConfigBuilder {
   readonly recordingStopInMs: number;
   readonly playbackStopInMs: number;
   readonly recordingNames: readonly string[];
+  readonly outputExtension: "wav" | "browser_default";
 }
 
 export interface LaunchPendingState {
