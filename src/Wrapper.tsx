@@ -13,6 +13,8 @@ import {
   LaunchPendingState,
   LaunchSucceededState,
   LaunchFailedState,
+  AllAudioMimeTypes,
+  AudioMimeType,
 } from "./state";
 
 export class Wrapper extends React.Component<WrapperProps, WrapperState> {
@@ -28,6 +30,19 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
     this.launchButtonOnClick = this.launchButtonOnClick.bind(this);
   }
   render(): React.ReactElement {
+    const allMimeTypes: AllAudioMimeTypes = [
+      "audio/webm",
+      "audio/ogg",
+      "audio/mp3",
+      "audio/x-matroska",
+    ];
+    const legalMimeType: undefined | AudioMimeType = allMimeTypes.find(
+      (mimeType) => MediaRecorder.isTypeSupported(mimeType)
+    );
+    if (legalMimeType === undefined) {
+      return this.renderUnsupportedBrowserMenu();
+    }
+
     const { state } = this;
     switch (state.kind) {
       case WrapperStateKind.Prelaunch:
@@ -35,10 +50,21 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
       case WrapperStateKind.LaunchPending:
         return this.renderLaunchPendingMenu(state);
       case WrapperStateKind.LaunchSucceeded:
-        return this.renderLaunchSucceededMenu(state);
+        return this.renderLaunchSucceededMenu(state, legalMimeType);
       case WrapperStateKind.LaunchFailed:
         return this.renderLaunchFailedMenu(state);
     }
+  }
+
+  renderUnsupportedBrowserMenu(): React.ReactElement {
+    return (
+      <div className="Wrapper--unsupportedBrowser">
+        <p>
+          Sorry, this browser is not supported. Please use a newer one, such as
+          Google Chrome 103.
+        </p>
+      </div>
+    );
   }
 
   renderPrelaunchMenu(state: PrelaunchState): React.ReactElement {
@@ -75,10 +101,13 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
     );
   }
 
-  renderLaunchSucceededMenu(state: LaunchSucceededState): React.ReactElement {
+  renderLaunchSucceededMenu(
+    state: LaunchSucceededState,
+    mimeType: AudioMimeType
+  ): React.ReactElement {
     return (
       <div className="Wrapper--launchSucceeded">
-        <App {...state.appProps} />
+        <App {...{ ...state.appProps, mimeType }} />
       </div>
     );
   }

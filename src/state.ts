@@ -1,5 +1,13 @@
 import { AppProps } from "./App";
 
+export type AllAudioMimeTypes = [
+  "audio/webm",
+  "audio/ogg",
+  "audio/mp3",
+  "audio/x-matroska"
+];
+export type AudioMimeType = AllAudioMimeTypes[number];
+
 export type WrapperState =
   | PrelaunchState
   | LaunchPendingState
@@ -12,7 +20,6 @@ export enum WrapperStateKind {
   LaunchSucceeded,
   LaunchFailed,
 }
-
 export interface PrelaunchState {
   readonly kind: WrapperStateKind.Prelaunch;
   readonly config: undefined | BokumoConfig;
@@ -42,11 +49,13 @@ export interface LaunchPendingState {
 
 export interface LaunchSucceededState {
   readonly kind: WrapperStateKind.LaunchSucceeded;
-  readonly appProps: AppProps;
+  readonly appProps: Omit<AppProps, "mimeType">;
 }
 
 export interface LaunchFailedState {
   readonly kind: WrapperStateKind.LaunchFailed;
 }
 
-export interface AppState {}
+export interface AppState {
+  readonly isRecording: boolean;
+}
