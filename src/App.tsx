@@ -160,7 +160,10 @@ export class App extends React.Component<AppProps, AppState> {
     bgmElement.currentTime = this.props.config.playbackStartInMs * 1e-3;
     bgmElement.play();
 
-    setTimeout(this.stopRecording, this.props.config.playbackStopInMs);
+    setTimeout(
+      this.stopRecording,
+      this.props.config.playbackStopInMs - this.props.config.playbackStartInMs
+    );
 
     this.renderSpectrogramBackground();
     requestAnimationFrame(this.updateSpectrogram);
