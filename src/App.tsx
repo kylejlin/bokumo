@@ -23,6 +23,7 @@ export class App extends React.Component<AppProps, AppState> {
   private analyser: AnalyserNode;
   private frequencyArray: Uint8Array;
   private startTimeInDateDotNow: number;
+  private previousRenderTimeInDateDotNow: number;
   private recorder: MediaRecorder;
   private audioChunks: Blob[];
 
@@ -33,6 +34,7 @@ export class App extends React.Component<AppProps, AppState> {
     this.recordButtonOnClick = this.recordButtonOnClick.bind(this);
     this.stopRecording = this.stopRecording.bind(this);
     this.recorderOnStop = this.recorderOnStop.bind(this);
+    this.startRecording = this.startRecording.bind(this);
 
     this.state = {
       isRecording: false,
@@ -53,6 +55,7 @@ export class App extends React.Component<AppProps, AppState> {
     this.frequencyArray = frequencyArray;
 
     this.startTimeInDateDotNow = -1;
+    this.previousRenderTimeInDateDotNow = -1;
 
     const recorder = new MediaRecorder(this.props.stream, {
       mimeType: this.props.mimeType,
@@ -110,15 +113,20 @@ export class App extends React.Component<AppProps, AppState> {
     } = this;
     audioAnalyser.getByteFrequencyData(frequencyArray);
 
+    const now = Date.now();
     const renderConfig: RenderConfig = {
       ctx,
       frequencyArray,
       bokumoConfig: this.props.config,
+      dateDotNow: now,
       startTimeInDateDotNow,
+      previousRenderTimeInDateDotNow: this.previousRenderTimeInDateDotNow,
     };
     renderSpectrogram(renderConfig);
 
-    const elapsedTime = Date.now() - startTimeInDateDotNow;
+    this.previousRenderTimeInDateDotNow = now;
+
+    const elapsedTime = now - startTimeInDateDotNow;
     const playbackDurationInMs =
       this.props.config.playbackStopInMs - this.props.config.playbackStartInMs;
     if (elapsedTime <= playbackDurationInMs) {
@@ -127,18 +135,22 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   recordButtonOnClick(): void {
+    this.setState({ isRecording: true }, this.startRecording);
+  }
+
+  startRecording(): void {
     this.startTimeInDateDotNow = Date.now();
+    this.previousRenderTimeInDateDotNow = this.startTimeInDateDotNow;
     this.audioChunks = [];
-    this.setState({ isRecording: true }, () => {
-      this.recorder.start();
 
-      const { bgmElement } = this.props.config;
-      bgmElement.currentTime = this.props.config.playbackStartInMs * 1e-3;
-      bgmElement.play();
+    this.recorder.start();
 
-      setTimeout(this.stopRecording, this.props.config.playbackStopInMs);
-      requestAnimationFrame(this.updateSpectrogram);
-    });
+    const { bgmElement } = this.props.config;
+    bgmElement.currentTime = this.props.config.playbackStartInMs * 1e-3;
+    bgmElement.play();
+
+    setTimeout(this.stopRecording, this.props.config.playbackStopInMs);
+    requestAnimationFrame(this.updateSpectrogram);
   }
 
   stopRecording(): void {
@@ -201,15 +213,13 @@ interface RenderConfig {
   ctx: CanvasRenderingContext2D;
   frequencyArray: Uint8Array;
   bokumoConfig: BokumoConfig;
+  dateDotNow: number;
   startTimeInDateDotNow: number;
+  previousRenderTimeInDateDotNow: number;
 }
 
 function renderSpectrogram(renderConfig: RenderConfig): void {
-  const { ctx, frequencyArray, startTimeInDateDotNow, bokumoConfig } =
-    renderConfig;
-  const elapsedMs = Date.now() - startTimeInDateDotNow;
-  const playbackDurationMs =
-    bokumoConfig.playbackStopInMs - bokumoConfig.playbackStartInMs;
+  const { ctx, frequencyArray, bokumoConfig } = renderConfig;
 
   const spectrumHeight = getFrequencyBinCount();
   const imgDataData = new Uint8ClampedArray(spectrumHeight * 4);
@@ -223,14 +233,33 @@ function renderSpectrogram(renderConfig: RenderConfig): void {
   }
   const imgData = new ImageData(imgDataData, 1, spectrumHeight);
 
-  const spectrumX = Math.floor(
+  const elapsedMsBetweenPreviousRenderAndRecordingStart =
+    renderConfig.previousRenderTimeInDateDotNow -
+    renderConfig.startTimeInDateDotNow;
+  const playbackDurationMs =
+    bokumoConfig.playbackStopInMs - bokumoConfig.playbackStartInMs;
+  const spectrumLeft = Math.floor(
     clampedLerp({
       start: 0,
       end: ctx.canvas.width,
-      factor: elapsedMs / playbackDurationMs,
+      factor:
+        elapsedMsBetweenPreviousRenderAndRecordingStart / playbackDurationMs,
     })
   );
-  ctx.putImageData(imgData, spectrumX, 0);
+
+  const elapsedMsBetweenNowAndRecordingStart =
+    renderConfig.dateDotNow - renderConfig.startTimeInDateDotNow;
+  const spectrumRight = Math.floor(
+    clampedLerp({
+      start: 0,
+      end: ctx.canvas.width,
+      factor: elapsedMsBetweenNowAndRecordingStart / playbackDurationMs,
+    })
+  );
+
+  for (let x = spectrumLeft; x < spectrumRight; ++x) {
+    ctx.putImageData(imgData, x, 0);
+  }
 }
 
 function downloadAudioBlobAsWav(audioCtx: AudioContext, audioBlob: Blob): void {
