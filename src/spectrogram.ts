@@ -1,4 +1,5 @@
 import { BokumoConfig } from "./bokumoConfig";
+import { clampedLerp } from "./misc";
 
 export interface RenderConfig {
   ctx: CanvasRenderingContext2D;
@@ -71,17 +72,4 @@ export function renderSpectrogram(renderConfig: RenderConfig): void {
   for (let x = spectrumLeft; x < spectrumRight; ++x) {
     ctx.putImageData(imgData, x, 0);
   }
-}
-
-function clampedLerp({
-  start,
-  end,
-  factor,
-}: {
-  start: number;
-  end: number;
-  factor: number;
-}): number {
-  const clampedFactor = Math.max(0, Math.min(factor, 1));
-  return start + (end - start) * clampedFactor;
 }

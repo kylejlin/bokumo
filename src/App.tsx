@@ -9,6 +9,7 @@ import {
   renderSpectrogram,
 } from "./spectrogram";
 import { BokumoConfig } from "./bokumoConfig";
+import { clampedLerp } from "./misc";
 
 const FFT_SIZE = 2048;
 
@@ -134,6 +135,7 @@ export class App extends React.Component<AppProps, AppState> {
       previousRenderTimeInDateDotNow: this.previousRenderTimeInDateDotNow,
     };
     renderSpectrogram(renderConfig);
+    renderRecordingReferenceTicks(ctx, this.props.config);
 
     this.previousRenderTimeInDateDotNow = now;
 
@@ -246,4 +248,50 @@ function downloadArrayBuffer(
   a.href = "data:audio/wav;base64," + getBase64FromArrayBuffer(wavBuffer);
   a.download = outputFileName;
   a.click();
+}
+
+function renderRecordingReferenceTicks(
+  ctx: CanvasRenderingContext2D,
+  bokumoConfig: BokumoConfig
+): void {
+  const { width: canvasWidth, height: canvasHeight } = ctx.canvas;
+
+  const playbackDurationInMs =
+    bokumoConfig.playbackStopInMs - bokumoConfig.playbackStartInMs;
+  const recordingStartFactor =
+    (bokumoConfig.recordingStartInMs - bokumoConfig.playbackStartInMs) /
+    playbackDurationInMs;
+  const mainSegmentStartFactor =
+    (bokumoConfig.mainSegmentStartInMs - bokumoConfig.playbackStartInMs) /
+    playbackDurationInMs;
+  const recordingStopFactor =
+    (bokumoConfig.recordingStopInMs - bokumoConfig.playbackStartInMs) /
+    playbackDurationInMs;
+
+  const recordingStartX = Math.floor(
+    clampedLerp({
+      start: 0,
+      end: ctx.canvas.width,
+      factor: recordingStartFactor,
+    })
+  );
+  const mainSegmentStartX = Math.floor(
+    clampedLerp({
+      start: 0,
+      end: ctx.canvas.width,
+      factor: mainSegmentStartFactor,
+    })
+  );
+  const recordingStopX = Math.floor(
+    clampedLerp({
+      start: 0,
+      end: canvasWidth,
+      factor: recordingStopFactor,
+    })
+  );
+
+  ctx.fillStyle = "red";
+  ctx.fillRect(recordingStartX, 0, 1, canvasHeight);
+  ctx.fillRect(mainSegmentStartX, 0, 1, canvasHeight);
+  ctx.fillRect(recordingStopX, 0, 1, canvasHeight);
 }
