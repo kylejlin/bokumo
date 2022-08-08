@@ -6,6 +6,10 @@ import { getBase64FromArrayBuffer } from "./lib/base64FromArrayBuffer";
 
 const FFT_SIZE = 2048;
 
+function getFrequencyBinCount(): number {
+  return FFT_SIZE / 2;
+}
+
 export interface AppProps {
   mimeType: AudioMimeType;
   stream: MediaStream;
@@ -18,7 +22,7 @@ export class App extends React.Component<AppProps, AppState> {
   private audioCtx: AudioContext;
   private analyser: AnalyserNode;
   private frequencyArray: Uint8Array;
-  private spectrumsRendered: number;
+  private startTimeInDateDotNow: number;
   private recorder: MediaRecorder;
   private audioChunks: Blob[];
 
@@ -48,7 +52,7 @@ export class App extends React.Component<AppProps, AppState> {
     const frequencyArray = new Uint8Array(analyser.frequencyBinCount);
     this.frequencyArray = frequencyArray;
 
-    this.spectrumsRendered = 0;
+    this.startTimeInDateDotNow = -1;
 
     const recorder = new MediaRecorder(this.props.stream, {
       mimeType: this.props.mimeType,
@@ -86,7 +90,7 @@ export class App extends React.Component<AppProps, AppState> {
           className="Spectrogram"
           ref={this.spectrogramRef}
           width={window.innerWidth}
-          height={512}
+          height={getFrequencyBinCount()}
         />
       </div>
     );
@@ -99,17 +103,31 @@ export class App extends React.Component<AppProps, AppState> {
     }
     const ctx = canvas.getContext("2d")!;
 
-    const { analyser: audioAnalyser, frequencyArray } = this;
+    const {
+      analyser: audioAnalyser,
+      frequencyArray,
+      startTimeInDateDotNow,
+    } = this;
     audioAnalyser.getByteFrequencyData(frequencyArray);
 
-    renderSpectrogram(ctx, frequencyArray, this.spectrumsRendered);
-    ++this.spectrumsRendered;
+    const renderConfig: RenderConfig = {
+      ctx,
+      frequencyArray,
+      bokumoConfig: this.props.config,
+      startTimeInDateDotNow,
+    };
+    renderSpectrogram(renderConfig);
 
-    requestAnimationFrame(this.updateSpectrogram);
+    const elapsedTime = Date.now() - startTimeInDateDotNow;
+    const playbackDurationInMs =
+      this.props.config.playbackStopInMs - this.props.config.playbackStartInMs;
+    if (elapsedTime <= playbackDurationInMs) {
+      requestAnimationFrame(this.updateSpectrogram);
+    }
   }
 
   recordButtonOnClick(): void {
-    this.spectrumsRendered = 0;
+    this.startTimeInDateDotNow = Date.now();
     this.audioChunks = [];
     this.setState({ isRecording: true }, () => {
       this.recorder.start();
@@ -179,17 +197,40 @@ export class App extends React.Component<AppProps, AppState> {
   }
 }
 
-function renderSpectrogram(
-  ctx: CanvasRenderingContext2D,
-  frequencyArray: Uint8Array,
-  x: number
-): void {
-  const spectrumHeight = Math.floor(frequencyArray.length / 4);
-  const imgDataData = new Uint8ClampedArray(
-    frequencyArray.subarray(0, 4 * Math.floor(frequencyArray.length / 4)).buffer
-  );
+interface RenderConfig {
+  ctx: CanvasRenderingContext2D;
+  frequencyArray: Uint8Array;
+  bokumoConfig: BokumoConfig;
+  startTimeInDateDotNow: number;
+}
+
+function renderSpectrogram(renderConfig: RenderConfig): void {
+  const { ctx, frequencyArray, startTimeInDateDotNow, bokumoConfig } =
+    renderConfig;
+  const elapsedMs = Date.now() - startTimeInDateDotNow;
+  const playbackDurationMs =
+    bokumoConfig.playbackStopInMs - bokumoConfig.playbackStartInMs;
+
+  const spectrumHeight = getFrequencyBinCount();
+  const imgDataData = new Uint8ClampedArray(spectrumHeight * 4);
+  for (let srcIndex = 0; srcIndex < spectrumHeight; ++srcIndex) {
+    const amplitude = frequencyArray[srcIndex];
+    const destRedIndex = (spectrumHeight - srcIndex - 1) * 4;
+    imgDataData[destRedIndex] = amplitude;
+    imgDataData[destRedIndex + 1] = amplitude;
+    imgDataData[destRedIndex + 2] = amplitude;
+    imgDataData[destRedIndex + 3] = 255;
+  }
   const imgData = new ImageData(imgDataData, 1, spectrumHeight);
-  ctx.putImageData(imgData, x, 0);
+
+  const spectrumX = Math.floor(
+    clampedLerp({
+      start: 0,
+      end: ctx.canvas.width,
+      factor: elapsedMs / playbackDurationMs,
+    })
+  );
+  ctx.putImageData(imgData, spectrumX, 0);
 }
 
 function downloadAudioBlobAsWav(audioCtx: AudioContext, audioBlob: Blob): void {
@@ -213,4 +254,17 @@ function downloadArrayBuffer(
   a.href = "data:audio/wav;base64," + getBase64FromArrayBuffer(wavBuffer);
   a.download = outputFileName;
   a.click();
+}
+
+function clampedLerp({
+  start,
+  end,
+  factor,
+}: {
+  start: number;
+  end: number;
+  factor: number;
+}): number {
+  const clampedFactor = Math.max(0, Math.min(factor, 1));
+  return start + (end - start) * clampedFactor;
 }
