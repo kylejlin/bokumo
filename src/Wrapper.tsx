@@ -26,7 +26,7 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
       config: undefined,
     };
 
-    this.fileInputOnChange = this.fileInputOnChange.bind(this);
+    this.uploadFilesButtonOnClick = this.uploadFilesButtonOnClick.bind(this);
     this.launchButtonOnClick = this.launchButtonOnClick.bind(this);
   }
   render(): React.ReactElement {
@@ -80,15 +80,14 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
             If you are a new user, click <a href={helpHref}>here</a> for help.
           </p>
         )}
-        <div>
-          <label>Upload files:</label>{" "}
-          <input
-            type="file"
-            multiple={true}
-            onChange={this.fileInputOnChange}
-          />
-        </div>
         <button
+          className="Wrapper--prelaunch__Button--uploadFiles"
+          onClick={this.uploadFilesButtonOnClick}
+        >
+          Upload Files
+        </button>
+        <button
+          className="Wrapper--prelaunch__Button--launch"
           disabled={state.config === undefined}
           onClick={this.launchButtonOnClick}
         >
@@ -136,32 +135,6 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
     );
   }
 
-  fileInputOnChange(event: React.ChangeEvent<HTMLInputElement>): void {
-    const { files: fileList } = event.target;
-    if (fileList === null) {
-      return;
-    }
-    const files = Array.from(fileList);
-
-    const bokumoDotJsonCandidates = files.filter((f) =>
-      isFileBokumoConfig(f.name)
-    );
-    if (bokumoDotJsonCandidates.length === 0) {
-      window.alert("No bokumo.json file found.");
-      return;
-    }
-    if (bokumoDotJsonCandidates.length > 1) {
-      window.alert("Multiple bokumo.json files found. Only one is allowed.");
-      return;
-    }
-
-    const bokumoDotJson = bokumoDotJsonCandidates[0];
-    const nonBokumoDotJsonFiles = files.filter(
-      (f) => !isFileBokumoConfig(f.name)
-    );
-    this.loadFiles(bokumoDotJson, nonBokumoDotJsonFiles);
-  }
-
   loadFiles(bokumoDotJson: File, nonBokumoDotJsonFiles: File[]): void {
     const fr = new FileReader();
     fr.addEventListener("load", () => {
@@ -184,6 +157,43 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
     });
 
     fr.readAsText(bokumoDotJson);
+  }
+
+  uploadFilesButtonOnClick(): void {
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.multiple = true;
+    fileInput.addEventListener("change", () => {
+      const { files: fileList } = fileInput;
+      if (fileList === null) {
+        return;
+      }
+      const files = Array.from(fileList);
+
+      if (files.length === 0) {
+        return;
+      }
+
+      const bokumoDotJsonCandidates = files.filter((f) =>
+        isFileBokumoConfig(f.name)
+      );
+      if (bokumoDotJsonCandidates.length === 0) {
+        window.alert("No bokumo.json file found.");
+        return;
+      }
+      if (bokumoDotJsonCandidates.length > 1) {
+        window.alert("Multiple bokumo.json files found. Only one is allowed.");
+        return;
+      }
+
+      const bokumoDotJson = bokumoDotJsonCandidates[0];
+      const nonBokumoDotJsonFiles = files.filter(
+        (f) => !isFileBokumoConfig(f.name)
+      );
+      this.loadFiles(bokumoDotJson, nonBokumoDotJsonFiles);
+    });
+
+    fileInput.click();
   }
 
   launchButtonOnClick(): void {
