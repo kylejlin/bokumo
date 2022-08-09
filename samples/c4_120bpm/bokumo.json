@@ -1,12 +1,12 @@
 {
   "bgm_file_name": "C4.wav",
   "playback_start_in_ms": 0,
-  "recording_start_in_ms": 2000,
+  "recording_start_in_ms": 1250,
   "recording_stop_in_ms": 4750,
   "playback_stop_in_ms": 6000,
   "reference_lines_in_ms": [
     "recording_start_in_ms",
-    1250,
+    2000,
     "recording_stop_in_ms"
   ],
   "reference_lines_in_hz": [261.63],
