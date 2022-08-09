@@ -90,22 +90,34 @@ export class App extends React.Component<AppProps, AppState> {
     const isPaused = !this.state.isRecording;
     return (
       <div className="App">
-        <div>Recording: {recordingNames[recordingIndex]}.wav</div>
+        <h2>
+          Recording: {recordingNames[recordingIndex]}.wav ({recordingIndex + 1}/
+          {recordingNames.length})
+        </h2>
+
         <button
+          className="App__Button--previous Button--secondary"
           disabled={!(0 < recordingIndex && isPaused)}
           onClick={this.previousRecordingButtonOnClick}
         >
           Previous
         </button>
-        <button disabled={!isPaused} onClick={this.recordButtonOnClick}>
+        <button
+          className="App__Button--record Button--primary"
+          disabled={!isPaused}
+          onClick={this.recordButtonOnClick}
+        >
           Record
         </button>
         <button
+          className="App__Button--next Button--secondary"
           disabled={!(recordingIndex < recordingNames.length - 1 && isPaused)}
           onClick={this.nextRecordingButtonOnClick}
         >
           Next
         </button>
+
+        <p>Spectrogram</p>
         <canvas
           className="Spectrogram"
           ref={this.spectrogramRef}

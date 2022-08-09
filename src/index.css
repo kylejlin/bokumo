@@ -24,47 +24,62 @@ body {
   margin-bottom: 10px;
 }
 
-.Wrapper--prelaunch__Button--uploadFiles {
-  width: 50vw;
-  border: 0;
-  margin: 0;
-  padding: 0;
-  outline: 0;
-  background-color: #08b;
-  color: white;
-  height: 3em;
-  font-size: 1em;
-  cursor: pointer;
-}
-
-.Wrapper--prelaunch__Button--uploadFiles:hover {
-  background-color: #0ae;
-}
-
+.Wrapper--prelaunch__Button--uploadFiles,
 .Wrapper--prelaunch__Button--launch {
   width: 50vw;
   border: 0;
   margin: 0;
   padding: 0;
   outline: 0;
-  background-color: #080;
-  color: white;
   height: 3em;
   font-size: 1em;
   cursor: pointer;
 }
 
-.Wrapper--prelaunch__Button--launch:hover {
-  background-color: #0a0;
-}
-
-.Wrapper--prelaunch__Button--launch:disabled {
-  background-color: #686;
-  color: #666;
-  cursor: not-allowed;
+.App__Button--previous,
+.App__Button--next,
+.App__Button--record {
+  width: 33.333vw;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  outline: 0;
+  height: 3em;
+  font-size: 1em;
+  cursor: pointer;
 }
 
 canvas {
   width: 100vw;
   height: 100px;
+}
+
+.Button--primary {
+  background-color: #080;
+  color: white;
+}
+
+.Button--primary:hover {
+  background-color: #0a0;
+}
+
+.Button--primary:disabled {
+  background-color: #686a;
+  color: #666;
+  cursor: not-allowed;
+}
+
+.Button--secondary {
+  background-color: #08b;
+  color: white;
+}
+
+.Button--secondary:hover {
+  background-color: #0ae;
+}
+
+.Button--secondary:disabled {
+  background-color: #08ba;
+  color: #666;
+  cursor: not-allowed;
 }

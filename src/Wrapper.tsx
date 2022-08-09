@@ -87,13 +87,13 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
           </p>
         )}
         <button
-          className="Wrapper--prelaunch__Button--uploadFiles"
+          className="Wrapper--prelaunch__Button--uploadFiles Button--secondary"
           onClick={this.uploadFilesButtonOnClick}
         >
           Upload Files
         </button>
         <button
-          className="Wrapper--prelaunch__Button--launch"
+          className="Wrapper--prelaunch__Button--launch Button--primary"
           disabled={state.config === undefined}
           onClick={this.launchButtonOnClick}
         >
