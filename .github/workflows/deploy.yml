@@ -3,7 +3,7 @@ name: deploy
 on: push
 
 jobs:
-  test-then-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
