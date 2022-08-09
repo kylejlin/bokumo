@@ -1,5 +1,4 @@
 import React from "react";
-import "./App.css";
 import { AppState, AudioMimeType } from "./state";
 import toWav from "audiobuffer-to-wav";
 import { getBase64FromArrayBuffer } from "./lib/base64FromArrayBuffer";

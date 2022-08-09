@@ -1,6 +1,5 @@
 import React from "react";
 import { App } from "./App";
-import "./App.css";
 import {
   buildConfig,
   isFileBokumoConfig,
@@ -58,7 +57,7 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
 
   renderUnsupportedBrowserMenu(): React.ReactElement {
     return (
-      <div className="Wrapper--unsupportedBrowser">
+      <div className="Wrapper Wrapper--unsupportedBrowser">
         <p>
           Sorry, this browser is not supported. Please use a newer one, such as
           Google Chrome 103.
@@ -69,7 +68,7 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
 
   renderPrelaunchMenu(state: PrelaunchState): React.ReactElement {
     return (
-      <div className="Wrapper--prelaunch">
+      <div className="Wrapper Wrapper--prelaunch">
         <p>Help: TODO Write user guide.</p>
         <div>
           <label>Upload files:</label>{" "}
@@ -91,7 +90,7 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
 
   renderLaunchPendingMenu(_state: LaunchPendingState): React.ReactElement {
     return (
-      <div className="Wrapper--launchPending">
+      <div className="Wrapper Wrapper--launchPending">
         <p>Almost ready to complete launch!</p>
         <p>
           Please grant microphone permission. The app will not start until
@@ -106,7 +105,7 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
     mimeType: AudioMimeType
   ): React.ReactElement {
     return (
-      <div className="Wrapper--launchSucceeded">
+      <div className="Wrapper Wrapper--launchSucceeded">
         <App {...{ ...state.appProps, mimeType }} />
       </div>
     );
@@ -114,7 +113,7 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
 
   renderLaunchFailedMenu(state: LaunchFailedState): React.ReactElement {
     return (
-      <div className="Wrapper--launchFailed">
+      <div className="Wrapper Wrapper--launchFailed">
         <p>
           Failed to launch app. Please grant microphone permission and try
           again. You will need to reload the page after granting microphone
