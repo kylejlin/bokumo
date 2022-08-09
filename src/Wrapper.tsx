@@ -5,6 +5,7 @@ import {
   isFileBokumoConfig,
   parseBokumoConfig,
 } from "./bokumoConfig";
+import { getGithubUsernameOfHost } from "./misc";
 import {
   WrapperState,
   WrapperStateKind,
@@ -67,9 +68,18 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
   }
 
   renderPrelaunchMenu(state: PrelaunchState): React.ReactElement {
+    const githubUsername = getGithubUsernameOfHost();
+    const helpHref: undefined | string =
+      githubUsername &&
+      `https://github.com/${githubUsername}/bokumo/tree/main/docs/user_guide.md`;
     return (
       <div className="Wrapper Wrapper--prelaunch">
-        <p>Help: TODO Write user guide.</p>
+        <h1>Welcome to Bokumo!</h1>
+        {helpHref && (
+          <p>
+            If you are a new user, click <a href={helpHref}>here</a> for help.
+          </p>
+        )}
         <div>
           <label>Upload files:</label>{" "}
           <input
