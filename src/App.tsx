@@ -25,7 +25,8 @@ export class App extends React.Component<AppProps, AppState> {
   private audioCtx: AudioContext;
   private analyser: AnalyserNode;
   private frequencyArray: Uint8Array;
-  private startTimeInMs: number;
+  private recordingStartTimeInMs: number;
+  private playbackStartTimeInMs: number;
   private previousRenderTimeInMs: number;
   private recorder: MediaRecorder;
   private audioChunks: Blob[];
@@ -63,7 +64,8 @@ export class App extends React.Component<AppProps, AppState> {
     const frequencyArray = new Uint8Array(analyser.frequencyBinCount);
     this.frequencyArray = frequencyArray;
 
-    this.startTimeInMs = -1;
+    this.recordingStartTimeInMs = -1;
+    this.playbackStartTimeInMs = -1;
     this.previousRenderTimeInMs = -1;
 
     const recorder = new MediaRecorder(this.props.stream, {
@@ -137,25 +139,29 @@ export class App extends React.Component<AppProps, AppState> {
     }
     const ctx = canvas.getContext("2d")!;
 
-    const { analyser: audioAnalyser, frequencyArray, startTimeInMs } = this;
+    const {
+      analyser: audioAnalyser,
+      frequencyArray,
+      playbackStartTimeInMs,
+    } = this;
     audioAnalyser.getByteFrequencyData(frequencyArray);
 
-    const now = this.audioCtx.currentTime * 1e3;
+    const currentTimeInMs = this.audioCtx.currentTime * 1e3;
     const renderConfig: RenderConfig = {
       ctx,
       audioCtx: this.audioCtx,
       frequencyArray,
       bokumoConfig: this.props.config,
-      currentTimeInMs: now,
-      startTimeInMs,
+      currentTimeInMs,
+      playbackStartTimeInMs,
       previousRenderTimeInMs: this.previousRenderTimeInMs,
     };
     renderSpectrogram(renderConfig);
     renderReferenceLines(ctx, this.props.config);
 
-    this.previousRenderTimeInMs = now;
+    this.previousRenderTimeInMs = currentTimeInMs;
 
-    const elapsedTime = now - startTimeInMs;
+    const elapsedTime = currentTimeInMs - playbackStartTimeInMs;
     const playbackDurationInMs =
       this.props.config.playbackStopInMs - this.props.config.playbackStartInMs;
     if (elapsedTime <= playbackDurationInMs) {
@@ -183,27 +189,30 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   startRecording(): void {
+    this.audioChunks = [];
+    this.recorder.start();
+  }
+
+  recorderOnStart(): void {
+    this.recordingStartTimeInMs = this.audioCtx.currentTime * 1e3;
+
     const { bgmElement } = this.props.config;
     bgmElement.currentTime = this.props.config.playbackStartInMs * 1e-3;
     const playPromise = bgmElement.play() ?? Promise.resolve();
 
     playPromise.then(() => {
-      this.audioChunks = [];
-      this.recorder.start();
+      const playbackStartTimeInMs = this.audioCtx.currentTime * 1e3;
+      this.playbackStartTimeInMs = playbackStartTimeInMs;
+      this.previousRenderTimeInMs = playbackStartTimeInMs;
+
+      setTimeout(
+        this.stopRecording,
+        this.props.config.playbackStopInMs - this.props.config.playbackStartInMs
+      );
+
+      this.renderSpectrogramBackground();
+      requestAnimationFrame(this.updateSpectrogram);
     });
-  }
-
-  recorderOnStart(): void {
-    this.startTimeInMs = this.audioCtx.currentTime * 1e3;
-    this.previousRenderTimeInMs = this.startTimeInMs;
-
-    setTimeout(
-      this.stopRecording,
-      this.props.config.playbackStopInMs - this.props.config.playbackStartInMs
-    );
-
-    this.renderSpectrogramBackground();
-    requestAnimationFrame(this.updateSpectrogram);
   }
 
   stopRecording(): void {
@@ -219,7 +228,8 @@ export class App extends React.Component<AppProps, AppState> {
       this.props.config,
       this.audioCtx,
       audioBlob,
-      this.props.config.recordingNames[this.state.recordingIndex] + ".wav"
+      this.props.config.recordingNames[this.state.recordingIndex] + ".wav",
+      this.playbackStartTimeInMs - this.recordingStartTimeInMs
     );
 
     this.setState({ isRecording: false });
@@ -230,7 +240,8 @@ function downloadAudioBlobAsWav(
   bokumoConfig: BokumoConfig,
   audioCtx: AudioContext,
   audioBlob: Blob,
-  outputFileName: string
+  outputFileName: string,
+  recordingDelayInMs: number
 ): void {
   const fr = new FileReader();
   fr.addEventListener("load", () => {
@@ -238,9 +249,13 @@ function downloadAudioBlobAsWav(
     audioCtx.decodeAudioData(rawBuffer, (entireAudioBuffer) => {
       const slicedAudioBuffer = sliceAudioBuffer(audioCtx, entireAudioBuffer, {
         startInMs:
-          bokumoConfig.recordingStartInMs - bokumoConfig.playbackStartInMs,
+          bokumoConfig.recordingStartInMs -
+          bokumoConfig.playbackStartInMs +
+          recordingDelayInMs,
         endInMs:
-          bokumoConfig.recordingStopInMs - bokumoConfig.playbackStartInMs,
+          bokumoConfig.recordingStopInMs -
+          bokumoConfig.playbackStartInMs +
+          recordingDelayInMs,
       });
       const wavBuffer = toWav(slicedAudioBuffer);
       downloadArrayBuffer(wavBuffer, outputFileName);

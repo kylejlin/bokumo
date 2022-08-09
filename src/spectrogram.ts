@@ -7,7 +7,7 @@ export interface RenderConfig {
   frequencyArray: Uint8Array;
   bokumoConfig: BokumoConfig;
   currentTimeInMs: number;
-  startTimeInMs: number;
+  playbackStartTimeInMs: number;
   previousRenderTimeInMs: number;
 }
 
@@ -46,7 +46,7 @@ export function renderSpectrogram(renderConfig: RenderConfig): void {
   const imgData = new ImageData(imgDataData, 1, spectrumHeight);
 
   const elapsedMsBetweenPreviousRenderAndRecordingStart =
-    renderConfig.previousRenderTimeInMs - renderConfig.startTimeInMs;
+    renderConfig.previousRenderTimeInMs - renderConfig.playbackStartTimeInMs;
   const playbackDurationMs =
     bokumoConfig.playbackStopInMs - bokumoConfig.playbackStartInMs;
   const spectrumLeft = Math.floor(
@@ -59,7 +59,7 @@ export function renderSpectrogram(renderConfig: RenderConfig): void {
   );
 
   const elapsedMsBetweenNowAndRecordingStart =
-    renderConfig.currentTimeInMs - renderConfig.startTimeInMs;
+    renderConfig.currentTimeInMs - renderConfig.playbackStartTimeInMs;
   const spectrumRight = Math.floor(
     clampedLerp({
       start: 0,
