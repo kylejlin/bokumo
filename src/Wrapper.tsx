@@ -18,6 +18,9 @@ import {
   AudioMimeType,
 } from "./state";
 
+const ARBITRARY_PREFIX_THAT_WILL_DEFINITELY_NOT_BE_CONTAINED_IN_A_PATH =
+  "/\\#@:&{}*<>";
+
 export class Wrapper extends React.Component<WrapperProps, WrapperState> {
   constructor(props: WrapperProps) {
     super(props);
@@ -25,6 +28,7 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
     this.state = {
       kind: WrapperStateKind.Prelaunch,
       config: undefined,
+      nonBokumoDotJsonFiles: [],
     };
 
     this.uploadFilesButtonOnClick = this.uploadFilesButtonOnClick.bind(this);
@@ -77,14 +81,17 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
       <div className="Wrapper Wrapper--prelaunch">
         <Header />
 
-        <p>Welcome to Bokumo!</p>
-        {helpHref && (
-          <p>
-            If you are a new user, click <a href={helpHref}>here</a> for help.
-          </p>
-        )}
-        {state.config === undefined && (
+        {state.config === undefined ? (
           <>
+            <p>Welcome to Bokumo!</p>
+
+            {helpHref && (
+              <p>
+                If you are a new user, click <a href={helpHref}>here</a> for
+                help.
+              </p>
+            )}
+
             <p>
               Please upload files. You can only launch the app after you upload
               a <span className="FileName">bokumo.json</span> file and a
@@ -94,8 +101,43 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
               The name of the background music file must match the name
               specified in <span className="FileName">bokumo.json</span>.
             </p>
+
+            {state.nonBokumoDotJsonFiles.length > 0 && (
+              <div className="FileListContainer">
+                <p>Files:</p>
+                <ol>
+                  {state.nonBokumoDotJsonFiles.map((file, i) => (
+                    <li
+                      key={
+                        i +
+                        ARBITRARY_PREFIX_THAT_WILL_DEFINITELY_NOT_BE_CONTAINED_IN_A_PATH +
+                        file.name
+                      }
+                    >
+                      <span className="FileName">{file.name}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
+
+            <div className="FileListContainer">
+              <p>Missing:</p>
+              <ol>
+                <li>
+                  <span className="FileName">bokumo.json</span>
+                </li>
+              </ol>
+            </div>
+          </>
+        ) : (
+          <>
+            <p>
+              Ready to launch. Please click the "Launch" button to continue.
+            </p>
           </>
         )}
+
         <button
           className="Wrapper--prelaunch__Button--uploadFiles Button--secondary"
           onClick={this.uploadFilesButtonOnClick}
@@ -190,26 +232,49 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
         return;
       }
 
-      const bokumoDotJsonCandidates = files.filter((f) =>
-        isFileBokumoConfig(f.name)
-      );
-      if (bokumoDotJsonCandidates.length === 0) {
-        window.alert("No bokumo.json file found.");
-        return;
-      }
-      if (bokumoDotJsonCandidates.length > 1) {
-        window.alert("Multiple bokumo.json files found. Only one is allowed.");
-        return;
-      }
-
-      const bokumoDotJson = bokumoDotJsonCandidates[0];
-      const nonBokumoDotJsonFiles = files.filter(
-        (f) => !isFileBokumoConfig(f.name)
-      );
-      this.loadFiles(bokumoDotJson, nonBokumoDotJsonFiles);
+      this.handleMultiFileUpload(files);
     });
 
     fileInput.click();
+  }
+
+  handleMultiFileUpload(files: readonly File[]): void {
+    const bokumoDotJsonFiles = files.filter((f) => isFileBokumoConfig(f.name));
+    const nonBokumoDotJsonFiles = files.filter(
+      (f) => !isFileBokumoConfig(f.name)
+    );
+
+    this.setState(
+      (prevState) => {
+        if (prevState.kind !== WrapperStateKind.Prelaunch) {
+          return prevState;
+        }
+
+        return {
+          ...prevState,
+          nonBokumoDotJsonFiles: prevState.nonBokumoDotJsonFiles.concat(
+            nonBokumoDotJsonFiles
+          ),
+        };
+      },
+      () => {
+        if (this.state.kind !== WrapperStateKind.Prelaunch) {
+          return;
+        }
+
+        if (bokumoDotJsonFiles.length > 1) {
+          window.alert(
+            "Multiple bokumo.json files found. Only one is allowed."
+          );
+          return;
+        }
+
+        if (bokumoDotJsonFiles.length === 1) {
+          const bokumoDotJson = bokumoDotJsonFiles[0];
+          this.loadFiles(bokumoDotJson, this.state.nonBokumoDotJsonFiles);
+        }
+      }
+    );
   }
 
   launchButtonOnClick(): void {

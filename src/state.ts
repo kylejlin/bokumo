@@ -24,6 +24,7 @@ export enum WrapperStateKind {
 export interface PrelaunchState {
   readonly kind: WrapperStateKind.Prelaunch;
   readonly config: undefined | BokumoConfig;
+  readonly nonBokumoDotJsonFiles: File[];
 }
 
 export interface LaunchPendingState {
