@@ -54,7 +54,11 @@ body {
   cursor: pointer;
 }
 
-canvas {
+.SpectrogramLabel {
+  margin-top: 3em;
+}
+
+.Spectrogram {
   width: 100vw;
   height: 100px;
 }

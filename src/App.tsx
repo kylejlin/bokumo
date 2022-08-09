@@ -121,7 +121,7 @@ export class App extends React.Component<AppProps, AppState> {
           Next
         </button>
 
-        <p>Spectrogram</p>
+        <p className="SpectrogramLabel">Spectrogram</p>
         <canvas
           className="Spectrogram"
           ref={this.spectrogramRef}
