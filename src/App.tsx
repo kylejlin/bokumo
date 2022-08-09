@@ -5,11 +5,11 @@ import toWav from "audiobuffer-to-wav";
 import { getBase64FromArrayBuffer } from "./lib/base64FromArrayBuffer";
 import {
   getSpectrogramCanvasHeight,
-  RenderConfig,
   renderSpectrogram,
-} from "./spectrogram";
+} from "./canvas/spectrogram";
 import { BokumoConfig } from "./bokumoConfig";
-import { clampedLerp } from "./misc";
+import { renderReferenceLines } from "./canvas/referenceLines";
+import { RenderConfig } from "./canvas/renderConfig";
 
 const FFT_SIZE = 2048;
 
@@ -157,7 +157,7 @@ export class App extends React.Component<AppProps, AppState> {
       previousRenderTimeInMs: this.previousRenderTimeInMs,
     };
     renderSpectrogram(renderConfig);
-    renderReferenceLines(ctx, this.props.config);
+    renderReferenceLines(renderConfig);
 
     this.previousRenderTimeInMs = currentTimeInMs;
 
@@ -272,36 +272,6 @@ function downloadArrayBuffer(
   a.href = "data:audio/wav;base64," + getBase64FromArrayBuffer(wavBuffer);
   a.download = outputFileName;
   a.click();
-}
-
-function renderReferenceLines(
-  ctx: CanvasRenderingContext2D,
-  bokumoConfig: BokumoConfig
-): void {
-  const { width: canvasWidth, height: canvasHeight } = ctx.canvas;
-
-  const playbackDurationInMs =
-    bokumoConfig.playbackStopInMs - bokumoConfig.playbackStartInMs;
-
-  const lineFactors = bokumoConfig.referenceLinesInMs.map(
-    (lineInMs) =>
-      (lineInMs - bokumoConfig.playbackStartInMs) / playbackDurationInMs
-  );
-  const lineXs = lineFactors.map((lineFactor) =>
-    Math.floor(
-      clampedLerp({
-        start: 0,
-        end: canvasWidth,
-        factor: lineFactor,
-      })
-    )
-  );
-
-  ctx.fillStyle = "red";
-  for (let i = 0; i < lineXs.length; ++i) {
-    const lineX = lineXs[i];
-    ctx.fillRect(lineX, 0, 1, canvasHeight);
-  }
 }
 
 function sliceAudioBuffer(

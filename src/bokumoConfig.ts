@@ -6,6 +6,7 @@ const BOKUMO_CONFIG = {
     recordingStopInMs: "recording_stop_in_ms",
     playbackStopInMs: "playback_stop_in_ms",
     referenceLinesInMs: "reference_lines_in_ms",
+    referenceLinesInHz: "reference_lines_in_hz",
     recordingNames: "recording_names",
     spectrogramMaxFrequency: "spectrogram_max_frequency_in_hz",
   },
@@ -25,6 +26,7 @@ export interface BokumoConfig {
   readonly recordingStopInMs: number;
   readonly playbackStopInMs: number;
   readonly referenceLinesInMs: number[];
+  readonly referenceLinesInHz: number[];
   readonly recordingNames: readonly string[];
   readonly spectrogramMaxFrequency: number;
 }
@@ -36,6 +38,7 @@ export interface BokumoConfigBuilder {
   readonly recordingStopInMs: number;
   readonly playbackStopInMs: number;
   readonly referenceLinesInMs: number[];
+  readonly referenceLinesInHz: number[];
   readonly recordingNames: readonly string[];
   readonly spectrogramMaxFrequency: undefined | number;
 }
@@ -70,6 +73,7 @@ export function parseBokumoConfig(
   const playbackStopInMs = parsed[BOKUMO_CONFIG.jsonKeys.playbackStopInMs];
   const referenceLinesInMs: (TimeSentinel | number)[] =
     parsed[BOKUMO_CONFIG.jsonKeys.referenceLinesInMs];
+  const referenceLinesInHz = parsed[BOKUMO_CONFIG.jsonKeys.referenceLinesInHz];
   const recordingNames = parsed[BOKUMO_CONFIG.jsonKeys.recordingNames];
   const spectrogramMaxFrequency =
     parsed[BOKUMO_CONFIG.jsonKeys.spectrogramMaxFrequency];
@@ -97,6 +101,8 @@ export function parseBokumoConfig(
             n === BOKUMO_CONFIG.sentinels.recordingStopInMs;
           return isValidNumber || isValidSentinel;
         }) &&
+        Array.isArray(referenceLinesInHz) &&
+        referenceLinesInHz.every((n) => Number.isFinite(n) && n > 0) &&
         Array.isArray(recordingNames) &&
         recordingNames.every((name) => typeof name === "string") &&
         recordingNames.length >= 1 &&
@@ -138,6 +144,7 @@ export function parseBokumoConfig(
             return n;
         }
       }),
+      referenceLinesInHz,
       recordingNames,
       spectrogramMaxFrequency,
     },
@@ -157,6 +164,7 @@ export function buildConfig(
         recordingStopInMs: builder.recordingStopInMs,
         playbackStopInMs: builder.playbackStopInMs,
         referenceLinesInMs: builder.referenceLinesInMs,
+        referenceLinesInHz: builder.referenceLinesInHz,
         recordingNames: builder.recordingNames,
         spectrogramMaxFrequency: builder.spectrogramMaxFrequency ?? Infinity,
       });
