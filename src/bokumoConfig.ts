@@ -32,7 +32,7 @@ export interface BokumoConfig {
 }
 
 export interface BokumoConfigBuilder {
-  readonly bgmElementUrl: string;
+  readonly bgmFileName: string;
   readonly playbackStartInMs: number;
   readonly recordingStartInMs: number;
   readonly recordingStopInMs: number;
@@ -48,14 +48,11 @@ export function isFileBokumoConfig(fileName: string): boolean {
 }
 
 export function parseBokumoConfig(
-  configSource: string,
-  nonBokumoDotJsonFiles: File[]
+  configSource: string
 ):
   | { error: undefined; configBuilder: BokumoConfigBuilder }
   | { error: "invalid_json_syntax" }
-  | { error: "invalid_json_shape" }
-  | { error: "bgm_not_found" }
-  | { error: "more_than_one_bgm_found" } {
+  | { error: "invalid_json_shape" } {
   let parsed;
   try {
     parsed = JSON.parse(configSource);
@@ -117,19 +114,10 @@ export function parseBokumoConfig(
     return { error: "invalid_json_shape" };
   }
 
-  const bgmFileCandidates = nonBokumoDotJsonFiles.filter(
-    (f) => f.name === bgmFileName
-  );
-  if (bgmFileCandidates.length === 0) {
-    return { error: "bgm_not_found" };
-  }
-  if (bgmFileCandidates.length > 1) {
-    return { error: "more_than_one_bgm_found" };
-  }
   return {
     error: undefined,
     configBuilder: {
-      bgmElementUrl: URL.createObjectURL(bgmFileCandidates[0]),
+      bgmFileName,
       playbackStartInMs,
       recordingStartInMs,
       recordingStopInMs,
@@ -152,7 +140,8 @@ export function parseBokumoConfig(
 }
 
 export function buildConfig(
-  builder: BokumoConfigBuilder
+  builder: BokumoConfigBuilder,
+  bgmFile: File
 ): Promise<BokumoConfig> {
   return new Promise((resolve) => {
     const bgmElement = document.createElement("audio");
@@ -169,6 +158,6 @@ export function buildConfig(
         spectrogramMaxFrequency: builder.spectrogramMaxFrequency ?? Infinity,
       });
     });
-    bgmElement.src = builder.bgmElementUrl;
+    bgmElement.src = URL.createObjectURL(bgmFile);
   });
 }

@@ -1,5 +1,5 @@
 import { AppProps } from "./App";
-import { BokumoConfig } from "./bokumoConfig";
+import { BokumoConfig, BokumoConfigBuilder } from "./bokumoConfig";
 
 export type AllAudioMimeTypes = [
   "audio/webm",
@@ -25,6 +25,9 @@ export interface PrelaunchState {
   readonly kind: WrapperStateKind.Prelaunch;
   readonly config: undefined | BokumoConfig;
   readonly nonBokumoDotJsonFiles: File[];
+  readonly bokumoDotJsonBuilderWithMissingBgmFile:
+    | undefined
+    | BokumoConfigBuilder;
 }
 
 export interface LaunchPendingState {

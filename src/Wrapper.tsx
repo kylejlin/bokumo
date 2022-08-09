@@ -29,6 +29,7 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
       kind: WrapperStateKind.Prelaunch,
       config: undefined,
       nonBokumoDotJsonFiles: [],
+      bokumoDotJsonBuilderWithMissingBgmFile: undefined,
     };
 
     this.uploadFilesButtonOnClick = this.uploadFilesButtonOnClick.bind(this);
@@ -77,6 +78,14 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
     const helpHref: undefined | string =
       githubUsername &&
       `https://github.com/${githubUsername}/bokumo/tree/main/docs/user_guide.md`;
+
+    const namesOfAddedFiles = state.nonBokumoDotJsonFiles
+      .map((f) => f.name)
+      .concat(
+        state.bokumoDotJsonBuilderWithMissingBgmFile === undefined
+          ? []
+          : ["bokumo.json"]
+      );
     return (
       <div className="Wrapper Wrapper--prelaunch">
         <Header />
@@ -102,19 +111,19 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
               specified in <span className="FileName">bokumo.json</span>.
             </p>
 
-            {state.nonBokumoDotJsonFiles.length > 0 && (
+            {namesOfAddedFiles.length > 0 && (
               <div className="FileListContainer">
                 <p>Files:</p>
                 <ol>
-                  {state.nonBokumoDotJsonFiles.map((file, i) => (
+                  {namesOfAddedFiles.map((fileName, i) => (
                     <li
                       key={
                         i +
                         ARBITRARY_PREFIX_THAT_WILL_DEFINITELY_NOT_BE_CONTAINED_IN_A_PATH +
-                        file.name
+                        fileName
                       }
                     >
-                      <span className="FileName">{file.name}</span>
+                      <span className="FileName">{fileName}</span>
                     </li>
                   ))}
                 </ol>
@@ -124,9 +133,23 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
             <div className="FileListContainer">
               <p>Missing:</p>
               <ol>
-                <li>
-                  <span className="FileName">bokumo.json</span>
-                </li>
+                {state.bokumoDotJsonBuilderWithMissingBgmFile === undefined ? (
+                  <>
+                    <li>
+                      <span className="FileName">bokumo.json</span>
+                    </li>
+                    {state.nonBokumoDotJsonFiles.length === 0 && (
+                      <li>Background music file</li>
+                    )}
+                  </>
+                ) : (
+                  <li>
+                    <span className="FileName">
+                      {state.bokumoDotJsonBuilderWithMissingBgmFile.bgmFileName}
+                    </span>{" "}
+                    (required by <span className="FileName">bokumo.json</span>)
+                  </li>
+                )}
               </ol>
             </div>
           </>
@@ -141,6 +164,7 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
         <button
           className="Wrapper--prelaunch__Button--uploadFiles Button--secondary"
           onClick={this.uploadFilesButtonOnClick}
+          disabled={state.config !== undefined}
         >
           Upload Files
         </button>
@@ -196,22 +220,41 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
   loadFiles(bokumoDotJson: File, nonBokumoDotJsonFiles: File[]): void {
     const fr = new FileReader();
     fr.addEventListener("load", () => {
-      const parseResult = parseBokumoConfig(
-        fr.result as string,
-        nonBokumoDotJsonFiles
-      );
+      const parseResult = parseBokumoConfig(fr.result as string);
       if (parseResult.error !== undefined) {
         window.alert(`Error: ${parseResult.error}`);
         return;
       }
 
       const { configBuilder } = parseResult;
-      buildConfig(configBuilder).then((config) => {
-        this.setState({
-          kind: WrapperStateKind.Prelaunch,
-          config,
+      const bgmFiles = nonBokumoDotJsonFiles.filter(
+        (f) => f.name === configBuilder.bgmFileName
+      );
+
+      if (bgmFiles.length === 0) {
+        this.setState((prevState) => {
+          if (prevState.kind !== WrapperStateKind.Prelaunch) {
+            return prevState;
+          }
+          return {
+            ...prevState,
+            bokumoDotJsonBuilderWithMissingBgmFile: configBuilder,
+          };
         });
-      });
+      } else if (bgmFiles.length > 1) {
+        displayMultipleBgmFilesErrorMessage(
+          configBuilder.bgmFileName,
+          bgmFiles.length
+        );
+      } else {
+        const bgmFile = bgmFiles[0];
+        buildConfig(configBuilder, bgmFile).then((config) => {
+          this.setState({
+            kind: WrapperStateKind.Prelaunch,
+            config,
+          });
+        });
+      }
     });
 
     fr.readAsText(bokumoDotJson);
@@ -272,6 +315,33 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
         if (bokumoDotJsonFiles.length === 1) {
           const bokumoDotJson = bokumoDotJsonFiles[0];
           this.loadFiles(bokumoDotJson, this.state.nonBokumoDotJsonFiles);
+          return;
+        }
+
+        if (this.state.bokumoDotJsonBuilderWithMissingBgmFile !== undefined) {
+          const configBuilder =
+            this.state.bokumoDotJsonBuilderWithMissingBgmFile;
+          const bgmFiles = this.state.nonBokumoDotJsonFiles.filter(
+            (f) => f.name === configBuilder.bgmFileName
+          );
+
+          if (bgmFiles.length > 1) {
+            displayMultipleBgmFilesErrorMessage(
+              configBuilder.bgmFileName,
+              bgmFiles.length
+            );
+            return;
+          }
+
+          if (bgmFiles.length === 1) {
+            buildConfig(configBuilder, bgmFiles[0]).then((config) => {
+              this.setState({
+                kind: WrapperStateKind.Prelaunch,
+                config,
+              });
+            });
+            return;
+          }
         }
       }
     );
@@ -310,3 +380,16 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
 }
 
 interface WrapperProps {}
+
+function displayMultipleBgmFilesErrorMessage(
+  bgmFileName: string,
+  numberOfFiles: number
+): void {
+  window.alert(
+    'The bokumo.json file requires exactly one background music file named "' +
+      bgmFileName +
+      '". However, you uploaded ' +
+      numberOfFiles +
+      " files with that name. As a result, Bokumo does not know which to choose. \n\nPlease refresh the page, and only upload one of them."
+  );
+}
