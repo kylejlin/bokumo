@@ -80,6 +80,12 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
             If you are a new user, click <a href={helpHref}>here</a> for help.
           </p>
         )}
+        {state.config === undefined && (
+          <p>
+            Please upload files. You can only launch the app after you upload a
+            bokumo.json file and a background music file.
+          </p>
+        )}
         <button
           className="Wrapper--prelaunch__Button--uploadFiles"
           onClick={this.uploadFilesButtonOnClick}
