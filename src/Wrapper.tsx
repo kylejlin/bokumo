@@ -376,6 +376,20 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
           kind: WrapperStateKind.LaunchFailed,
         });
       });
+
+    setTimeout(() => {
+      // We can't simply write
+      // `this.setState({ kind: WrapperStateKind.LaunchPending });`
+      // because we don't want to set the state to LaunchPending
+      // if it's already launched (which may be the case if microphone
+      // permissions were already granted).
+      this.setState((prevState) => {
+        if (prevState.kind !== WrapperStateKind.Prelaunch) {
+          return prevState;
+        }
+        return { kind: WrapperStateKind.LaunchPending };
+      });
+    }, 1000);
   }
 }
 
