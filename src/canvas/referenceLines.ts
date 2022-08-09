@@ -59,6 +59,6 @@ function renderReferencePitchLines(renderConfig: RenderConfig): void {
   ctx.fillStyle = "red";
   for (let i = 0; i < lineYs.length; ++i) {
     const lineY = lineYs[i];
-    ctx.fillRect(0, lineY, canvasWidth, 2);
+    ctx.fillRect(0, lineY, canvasWidth, 1);
   }
 }

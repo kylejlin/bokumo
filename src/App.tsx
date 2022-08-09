@@ -82,7 +82,12 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   componentDidMount(): void {
+    this.resizeCanvas();
     this.renderSpectrogramBackground();
+  }
+
+  componentDidUpdate(): void {
+    this.resizeCanvas();
   }
 
   render(): React.ReactElement {
@@ -134,6 +139,21 @@ export class App extends React.Component<AppProps, AppState> {
         />
       </div>
     );
+  }
+
+  resizeCanvas(): void {
+    const canvas = this.spectrogramRef.current;
+    if (canvas === null) {
+      return;
+    }
+
+    canvas.style.position = "static";
+
+    const rect = canvas.getBoundingClientRect();
+    const availableHeight = window.innerHeight - rect.top;
+    canvas.style.height = availableHeight + "px";
+
+    canvas.style.position = "absolute";
   }
 
   renderSpectrogramBackground(): void {
