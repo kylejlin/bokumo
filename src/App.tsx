@@ -9,6 +9,7 @@ import {
 import { BokumoConfig } from "./bokumoConfig";
 import { renderReferenceLines } from "./canvas/referenceLines";
 import { RenderConfig } from "./canvas/renderConfig";
+import { Header } from "./Header";
 
 const FFT_SIZE = 2048;
 
@@ -90,10 +91,13 @@ export class App extends React.Component<AppProps, AppState> {
     const isPaused = !this.state.isRecording;
     return (
       <div className="App">
-        <h2>
-          Recording: {recordingNames[recordingIndex]}.wav ({recordingIndex + 1}/
-          {recordingNames.length})
-        </h2>
+        <Header />
+
+        <p>
+          Current recording:{" "}
+          <span className="FileName">{recordingNames[recordingIndex]}.wav</span>{" "}
+          ({recordingIndex + 1}/{recordingNames.length})
+        </p>
 
         <button
           className="App__Button--previous Button--secondary"

@@ -5,6 +5,7 @@ import {
   isFileBokumoConfig,
   parseBokumoConfig,
 } from "./bokumoConfig";
+import { Header } from "./Header";
 import { getGithubUsernameOfHost } from "./misc";
 import {
   WrapperState,
@@ -74,17 +75,26 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
       `https://github.com/${githubUsername}/bokumo/tree/main/docs/user_guide.md`;
     return (
       <div className="Wrapper Wrapper--prelaunch">
-        <h1>Welcome to Bokumo!</h1>
+        <Header />
+
+        <p>Welcome to Bokumo!</p>
         {helpHref && (
           <p>
             If you are a new user, click <a href={helpHref}>here</a> for help.
           </p>
         )}
         {state.config === undefined && (
-          <p>
-            Please upload files. You can only launch the app after you upload a
-            bokumo.json file and a background music file.
-          </p>
+          <>
+            <p>
+              Please upload files. You can only launch the app after you upload
+              a <span className="FileName">bokumo.json</span> file and a
+              background music file.
+            </p>
+            <p>
+              The name of the background music file must match the name
+              specified in <span className="FileName">bokumo.json</span>.
+            </p>
+          </>
         )}
         <button
           className="Wrapper--prelaunch__Button--uploadFiles Button--secondary"

@@ -7,12 +7,17 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-.Wrapper {
-  text-align: center;
+.Header {
+  background-color: #222;
+  color: #ddd;
+  margin-top: 0;
+  padding-top: 1em;
+  padding-bottom: 1em;
+  margin-bottom: 1em;
 }
 
-.Wrapper--prelaunch {
-  padding-top: 10px;
+.Wrapper {
+  text-align: center;
 }
 
 .Wrapper--prelaunch p {
@@ -82,4 +87,12 @@ canvas {
   background-color: #08ba;
   color: #666;
   cursor: not-allowed;
+}
+
+.FileName {
+  font-family: monospace;
+  background: #ddd;
+  border-radius: 3px;
+  padding-left: 3px;
+  padding-right: 3px;
 }
