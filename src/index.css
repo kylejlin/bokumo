@@ -33,6 +33,18 @@ body,
   margin: 10px;
 }
 
+.DeleteButton {
+  background-color: #c00;
+  color: #eee;
+  border: 0;
+  outline: none;
+  cursor: pointer;
+}
+
+.DeleteButton:hover {
+  background-color: #f00;
+}
+
 .StatusSection {
   margin-top: 40px;
   margin-bottom: 40px;

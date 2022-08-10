@@ -33,6 +33,7 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
     };
 
     this.uploadFilesButtonOnClick = this.uploadFilesButtonOnClick.bind(this);
+    this.deleteFileInfo = this.deleteFileInfo.bind(this);
     this.launchButtonOnClick = this.launchButtonOnClick.bind(this);
   }
   render(): React.ReactElement {
@@ -121,7 +122,13 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
                     info.file.name
                   }
                 >
-                  <span className="FileName">{info.file.name}</span>
+                  <span className="FileName">{info.file.name}</span>{" "}
+                  <button
+                    className="DeleteButton"
+                    onClick={() => this.deleteFileInfo(info)}
+                  >
+                    Delete
+                  </button>
                 </li>
               ))}
             </ol>
@@ -296,7 +303,7 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
         }
 
         const idGreaterThanAllExistingIds =
-          Math.max(...prevState.fileInfo.map((info) => info.id)) + 1;
+          Math.max(1, ...prevState.fileInfo.map((info) => info.id)) + 1;
 
         const newFileInfo = newPartialInfo.map((partial, i) => {
           return {
@@ -360,6 +367,19 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
           return { kind: WrapperStateKind.LaunchPending };
         });
       }, 1000);
+    });
+  }
+
+  deleteFileInfo(infoToDelete: FileInfo): void {
+    this.setState((prevState) => {
+      if (prevState.kind !== WrapperStateKind.Prelaunch) {
+        return prevState;
+      }
+
+      return {
+        ...prevState,
+        fileInfo: prevState.fileInfo.filter((i) => i.id !== infoToDelete.id),
+      };
     });
   }
 }
