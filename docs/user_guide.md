@@ -7,7 +7,7 @@
 1. Download a `bokumo.json` file and a background music (hereafter referred to as "BGM") file. A sample can be found in [this directory](../samples/c2_120bpm).
 2. Open [https://kylejlin.github.io/bokumo](https://kylejlin.github.io/bokumo).
 3. Click the "Upload Files" button.
-4. Select the `bokumo.json` file AND the BGM file. **You cannot upload these one at a time--you must upload them simulatenously.**
+4. Select the `bokumo.json` file AND the BGM file.
 5. Click the "Launch" button.
 6. Grant microphone permission when asked.
 
