@@ -43,7 +43,7 @@ export interface BokumoConfigBuilder {
   readonly spectrogramMaxFrequency: undefined | number;
 }
 
-export function isFileBokumoConfig(fileName: string): boolean {
+export function isFileNameBokumoConfig(fileName: string): boolean {
   return fileName.toLowerCase() === "bokumo.json";
 }
 
