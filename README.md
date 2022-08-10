@@ -18,10 +18,9 @@ Please read the [User Guide](./docs/user_guide.md).
 
 ## License
 
-Everything except the audio files are licensed under the MIT License.
+MIT License
 
-The audio files were obtained from [here](https://www.youtube.com/redirect?event=video_description&redir_token=QUFFLUhqbWMxWGlxeUNoaUdNVGJfQUlGb2YyNFYwcUJRd3xBQ3Jtc0ttcDU3SE4wSVhqb3NWREFhSGgzaWMwVVMzS3o4Q2plR1dzVG94Z2hPbU9wdElrMnR1Zkc2N0czTzhhLVRDTmF6cERTRVVPak1FNEFCVkNTMDZLVnBhSkdfazN2SEg4UWktMHVZQlV3Z0hhTGtKRW5wcw&q=http%3A%2F%2Fwww.mediafire.com%2Fdownload%2Fwef9lg11dmccxqx%2FCORE_American_English_VCCV.zip&v=o2DvpdyXNw4).
-You may use them according to whatever terms their creator licensed them under.
+Copyright (c) 2022 Kyle Lin
 
 ## Contribution
 
