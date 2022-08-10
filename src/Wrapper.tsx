@@ -91,95 +91,103 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
       <div className="Wrapper Wrapper--prelaunch">
         <Header />
 
-        {!canLaunch(state.fileInfo) ? (
-          <>
-            <p>Welcome to Bokumo!</p>
+        <p>Welcome to Bokumo!</p>
 
-            {helpHref && (
-              <p>
-                If you are a new user, click <a href={helpHref}>here</a> for
-                help.
-              </p>
-            )}
+        {helpHref && (
+          <p>
+            If you are a new user, click <a href={helpHref}>here</a> for help.
+          </p>
+        )}
 
-            <p>
-              Please upload files. You can only launch the app after you upload
-              a <span className="FileName">bokumo.json</span> file and a
-              background music file.
-            </p>
-            <p>
-              The name of the background music file must match the name
-              specified in <span className="FileName">bokumo.json</span>.
-            </p>
+        <p>
+          Please upload files. You can only launch the app after you upload a{" "}
+          <span className="FileName">bokumo.json</span> file and a background
+          music file.
+        </p>
+        <p>
+          The name of the background music file must match the name specified in{" "}
+          <span className="FileName">bokumo.json</span>.
+        </p>
 
-            {state.fileInfo.length > 0 && (
-              <div className="FileListContainer">
-                <p>Files:</p>
-                <ol>
-                  {state.fileInfo.map((info, i) => (
-                    <li
-                      key={
-                        i +
-                        ARBITRARY_PREFIX_THAT_WILL_DEFINITELY_NOT_BE_CONTAINED_IN_A_PATH +
-                        info.file.name
-                      }
-                    >
-                      <span className="FileName">{info.file.name}</span>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            )}
+        {state.fileInfo.length > 0 && (
+          <div className="StatusSection">
+            <p>Files:</p>
+            <ol>
+              {state.fileInfo.map((info, i) => (
+                <li
+                  key={
+                    i +
+                    ARBITRARY_PREFIX_THAT_WILL_DEFINITELY_NOT_BE_CONTAINED_IN_A_PATH +
+                    info.file.name
+                  }
+                >
+                  <span className="FileName">{info.file.name}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
 
-            <div className="FileListContainer">
-              <p>Issues preventing launch:</p>
-              <ol>
-                {bokumoDotJsonFileInfo.length > 1 && (
-                  <li>
-                    Multiple <span className="FileName">bokumo.json</span>{" "}
-                    files.
-                  </li>
-                )}
-
-                {bokumoDotJsonFileInfo.length === 0 && (
-                  <li>
-                    Missing <span className="FileName">bokumo.json</span> file.
-                  </li>
-                )}
-
-                {state.fileInfo.length === 0 && (
-                  <li>Missing background music file.</li>
-                )}
-
-                {bokumoDotJsonFileInfo.length === 1 &&
-                  bokumoDotJsonFileInfo[0].configBuilder === undefined && (
-                    <li>
-                      Invalid <span className="FileName">bokumo.json</span>{" "}
-                      file.
-                    </li>
-                  )}
-
-                {bokumoDotJsonFileInfo.length === 1 &&
-                  requiredBgmFileName !== undefined &&
-                  !state.fileInfo.some(
-                    (info) => info.file.name === requiredBgmFileName
-                  ) && (
-                    <li>
-                      Missing{" "}
-                      <span className="FileName">{requiredBgmFileName}</span>{" "}
-                      (required by <span className="FileName">bokumo.json</span>
-                      ).
-                    </li>
-                  )}
-              </ol>
-            </div>
-          </>
-        ) : (
-          <>
-            <p>
+        {canLaunch(state.fileInfo) ? (
+          <div className="StatusSection">
+            <p className="ReadyToLaunchNotification">
               Ready to launch. Please click the "Launch" button to continue.
             </p>
-          </>
+          </div>
+        ) : (
+          <div className="StatusSection">
+            <p>Issues preventing launch:</p>
+            <ol>
+              {bokumoDotJsonFileInfo.length > 1 && (
+                <li>
+                  Multiple <span className="FileName">bokumo.json</span> files.
+                  Please delete all but one.
+                </li>
+              )}
+
+              {bokumoDotJsonFileInfo.length === 0 && (
+                <li>
+                  Missing <span className="FileName">bokumo.json</span> file.
+                </li>
+              )}
+
+              {state.fileInfo.length === 0 && (
+                <li>Missing background music file.</li>
+              )}
+
+              {bokumoDotJsonFileInfo.length === 1 &&
+                bokumoDotJsonFileInfo[0].configBuilder === undefined && (
+                  <li>
+                    Invalid <span className="FileName">bokumo.json</span> file.
+                  </li>
+                )}
+
+              {bokumoDotJsonFileInfo.length === 1 &&
+                requiredBgmFileName !== undefined &&
+                !state.fileInfo.some(
+                  (info) => info.file.name === requiredBgmFileName
+                ) && (
+                  <li>
+                    Missing{" "}
+                    <span className="FileName">{requiredBgmFileName}</span>{" "}
+                    (required by <span className="FileName">bokumo.json</span>
+                    ).
+                  </li>
+                )}
+
+              {bokumoDotJsonFileInfo.length === 1 &&
+                requiredBgmFileName !== undefined &&
+                state.fileInfo.filter(
+                  (info) => info.file.name === requiredBgmFileName
+                ).length > 1 && (
+                  <li>
+                    Multiple{" "}
+                    <span className="FileName">{requiredBgmFileName}</span>{" "}
+                    files. Please delete all but one.
+                  </li>
+                )}
+            </ol>
+          </div>
         )}
 
         <button
