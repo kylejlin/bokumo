@@ -59,6 +59,10 @@ body,
   display: inline-block;
 }
 
+.BgmVolumeInputContainer {
+  margin-bottom: 1em;
+}
+
 .Wrapper--prelaunch__Button--uploadFiles,
 .Wrapper--prelaunch__Button--launch {
   width: 50vw;

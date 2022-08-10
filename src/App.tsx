@@ -40,12 +40,14 @@ export class App extends React.Component<AppProps, AppState> {
       this.previousRecordingButtonOnClick.bind(this);
     this.nextRecordingButtonOnClick =
       this.nextRecordingButtonOnClick.bind(this);
+    this.volumeSliderOnChange = this.volumeSliderOnChange.bind(this);
     this.startRecording = this.startRecording.bind(this);
     this.recorderOnStart = this.recorderOnStart.bind(this);
     this.stopRecording = this.stopRecording.bind(this);
     this.recorderOnStop = this.recorderOnStop.bind(this);
 
     this.state = {
+      volume: this.props.config.bgmElement.volume,
       isRecording: false,
       recordingIndex: 0,
     };
@@ -103,6 +105,18 @@ export class App extends React.Component<AppProps, AppState> {
           <span className="FileName">{recordingNames[recordingIndex]}.wav</span>{" "}
           ({recordingIndex + 1}/{recordingNames.length})
         </p>
+
+        <div className="BgmVolumeInputContainer">
+          <label>Background music volume: </label>
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.01}
+            value={this.state.volume}
+            onChange={this.volumeSliderOnChange}
+          />
+        </div>
 
         <button
           className="App__Button--previous Button--secondary"
@@ -223,6 +237,17 @@ export class App extends React.Component<AppProps, AppState> {
     });
   }
 
+  volumeSliderOnChange(change: React.ChangeEvent<HTMLInputElement>): void {
+    const unclamped = Number(change.target.value);
+    if (!Number.isFinite(unclamped)) {
+      return;
+    }
+
+    const clampedVolume = Math.max(0, Math.min(unclamped, 1));
+    this.props.config.bgmElement.volume = clampedVolume;
+    this.setState({ volume: clampedVolume });
+  }
+
   startRecording(): void {
     this.audioChunks = [];
     this.recorder.start();
@@ -233,6 +258,7 @@ export class App extends React.Component<AppProps, AppState> {
 
     const { bgmElement } = this.props.config;
     bgmElement.currentTime = this.props.config.playbackStartInMs * 1e-3;
+    bgmElement.volume = this.state.volume;
     const playPromise = bgmElement.play() ?? Promise.resolve();
 
     playPromise.then(() => {

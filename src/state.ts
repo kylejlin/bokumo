@@ -46,6 +46,19 @@ export interface LaunchFailedState {
 }
 
 export interface AppState {
+  /**
+   * Between zero and one, inclusive.
+   *
+   * We shouldn't theoretically need to store this in React state,
+   * since we could just update the audio element's volume
+   * directly.
+   *
+   * However, if we did that, then the volume input's value would
+   * have to be computed using the audio element's volume
+   * (rather than from React state), which could potentially lead to
+   * React bugs.
+   * */
+  readonly volume: number;
   readonly isRecording: boolean;
   readonly recordingIndex: number;
 }
