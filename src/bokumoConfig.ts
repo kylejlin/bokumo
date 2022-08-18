@@ -44,7 +44,7 @@ export interface BokumoConfigBuilder {
 }
 
 export function isFileNameBokumoConfig(fileName: string): boolean {
-  return fileName.toLowerCase() === "bokumo.json";
+  return /^bokumo\.*\.json$/i.test(fileName);
 }
 
 export function parseBokumoConfig(

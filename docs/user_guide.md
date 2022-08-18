@@ -5,6 +5,7 @@
 ### Part 1. Configure and launch
 
 1. Download a `bokumo.json` file and a background music (hereafter referred to as "BGM") file. A sample can be found in [this directory](../samples/c2_120bpm).
+   1. Note: We use the term "`bokumo.json` file" as a generic term to refer to a Bokumo config file. The file does **NOT** need to be named "`bokumo.json`". Any file that has a name starting with "`bokumo`" and ending with "`.json`" is considered a `bokumo.json` file.
 2. Open [https://kylejlin.github.io/bokumo](https://kylejlin.github.io/bokumo).
 3. Click the "Upload Files" button.
 4. Select the `bokumo.json` file AND the BGM file.
