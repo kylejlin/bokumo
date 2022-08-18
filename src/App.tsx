@@ -83,16 +83,16 @@ export class App extends React.Component<AppProps, AppState> {
     this.audioChunks = [];
   }
 
-  componentDidMount(): void {
+  override componentDidMount(): void {
     this.resizeCanvas();
     this.renderSpectrogramBackground();
   }
 
-  componentDidUpdate(): void {
+  override componentDidUpdate(): void {
     this.resizeCanvas();
   }
 
-  render(): React.ReactElement {
+  override render(): React.ReactElement {
     const { recordingNames } = this.props.config;
     const { recordingIndex } = this.state;
     const isPaused = !this.state.isRecording;

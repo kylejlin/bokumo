@@ -29,8 +29,30 @@
   "eslintConfig": {
     "extends": [
       "react-app",
-      "react-app/jest"
-    ]
+      "react-app/jest",
+      "plugin:@typescript-eslint/recommended"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "project": [
+        "./tsconfig.json"
+      ]
+    },
+    "plugins": [
+      "@typescript-eslint"
+    ],
+    "rules": {
+      "@typescript-eslint/strict-boolean-expressions": [
+        2,
+        {
+          "allowString": false,
+          "allowNumber": false,
+          "allowNullableObject": false
+        }
+      ],
+      "@typescript-eslint/no-non-null-assertion": "off",
+      "@typescript-eslint/no-explicit-any": "off"
+    }
   },
   "browserslist": {
     "production": [

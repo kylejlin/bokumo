@@ -36,7 +36,8 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
     this.deleteFileInfo = this.deleteFileInfo.bind(this);
     this.launchButtonOnClick = this.launchButtonOnClick.bind(this);
   }
-  render(): React.ReactElement {
+
+  override render(): React.ReactElement {
     const allMimeTypes: AllAudioMimeTypes = [
       "audio/webm",
       "audio/ogg",
@@ -77,8 +78,9 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
   renderPrelaunchMenu(state: PrelaunchState): React.ReactElement {
     const githubUsername = getGithubUsernameOfHost();
     const helpHref: undefined | string =
-      githubUsername &&
-      `https://github.com/${githubUsername}/bokumo/tree/main/docs/user_guide.md`;
+      githubUsername === undefined
+        ? undefined
+        : `https://github.com/${githubUsername}/bokumo/tree/main/docs/user_guide.md`;
 
     const bokumoDotJsonFileInfo = state.fileInfo.filter((info) =>
       isFileNameBokumoConfig(info.file.name)
@@ -94,7 +96,7 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
 
         <p>Welcome to Bokumo!</p>
 
-        {helpHref && (
+        {helpHref !== undefined && (
           <p>
             If you are a new user, click <a href={helpHref}>here</a> for help.
           </p>
@@ -384,7 +386,7 @@ export class Wrapper extends React.Component<WrapperProps, WrapperState> {
   }
 }
 
-interface WrapperProps {}
+type WrapperProps = Record<string, unknown>;
 
 function canLaunch(fileInfo: readonly FileInfo[]): boolean {
   return getConfigBuilderAndBgmFileFromFileInfoArray(fileInfo) !== undefined;
